@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="si">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ictfrom | Free Learn Pack (FLP)</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="D:\ictfrom Learn Free/logo.png">
+</head>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard | ictfrom | Free Learn Pack (FLP)</title>
+<style>
+  :root{
+    --black:#0a0a0a;
+    --red:#e5121a;
+    --red-dim:#7a0c11;
+    --white:#f5f5f5;
+    --grey:#8a8a8a;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Consolas','Courier New',monospace;
+    background:var(--black);
+    color:var(--white);
+    overflow:hidden;
+    position:relative;
+  }
+
+  /* layered animated background */
+  .bg-layer{
+    position:fixed; inset:0; z-index:0; overflow:hidden;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(229,18,26,0.10), transparent 45%),
+      radial-gradient(circle at 80% 75%, rgba(229,18,26,0.08), transparent 50%),
+      var(--black);
+  }
+  #netCanvas{ position:fixed; inset:0; z-index:0; display:block; }
+
+  .orb{
+    position:fixed; border-radius:50%; filter:blur(60px); z-index:0;
+    opacity:.55; animation:drift ease-in-out infinite alternate;
+  }
+  .orb.red{ background:radial-gradient(circle, rgba(229,18,26,0.55), transparent 70%); }
+  .orb.white{ background:radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%); }
+  .orb1{ width:420px; height:420px; top:-10%; left:-8%; animation-duration:18s; }
+  .orb2{ width:360px; height:360px; bottom:-12%; right:-6%; animation-duration:22s; animation-delay:2s; }
+  .orb3{ width:260px; height:260px; top:40%; left:65%; animation-duration:16s; animation-delay:4s; }
+  @keyframes drift{
+    0%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(40px,-30px) scale(1.12); }
+    100%{ transform:translate(-30px,25px) scale(0.95); }
+  }
+
+  .sweep-beam{
+    position:fixed; top:0; bottom:0; width:180px;
+    background:linear-gradient(90deg, transparent, rgba(229,18,26,0.09), transparent);
+    filter:blur(6px);
+    animation:beamMove 9s ease-in-out infinite;
+    z-index:0;
+  }
+  @keyframes beamMove{
+    0%{ left:-15%; } 50%{ left:85%; } 100%{ left:-15%; }
+  }
+
+  .scanline{
+    position:fixed; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--red), transparent);
+    box-shadow:0 0 20px 4px rgba(229,18,26,0.6);
+    animation:scan 6s ease-in-out infinite;
+    z-index:1; opacity:.6;
+  }
+  @keyframes scan{
+    0%{top:0%;} 50%{top:100%;} 100%{top:0%;}
+  }
+
+  .wrap{
+    position:relative; z-index:2;
+    width:100%; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .box{
+    background:rgba(20,20,20,0.75);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(229,18,26,0.35);
+    border-radius:14px;
+    padding:48px 44px;
+    box-shadow:0 0 40px rgba(229,18,26,0.15), 0 20px 60px rgba(0,0,0,0.6);
+    max-width:90vw; width:420px;
+    text-align:center;
+    position:relative; overflow:hidden;
+    animation:cardIn .7s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes cardIn{
+    from{opacity:0; transform:translateY(30px) scale(.96);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+  .box::before{
+    content:"";
+    position:absolute; top:-2px; left:-2px; right:-2px; height:3px;
+    background:linear-gradient(90deg, transparent, var(--red), transparent);
+    animation:sweep 3s linear infinite;
+  }
+  @keyframes sweep{
+    0%{transform:translateX(-100%);} 100%{transform:translateX(100%);}
+  }
+
+  .tag{
+    display:inline-block; font-size:11px; letter-spacing:3px;
+    color:var(--red); border:1px solid var(--red-dim);
+    padding:3px 10px; border-radius:20px; margin-bottom:16px;
+    animation:pulseTag 2.4s ease-in-out infinite;
+  }
+  @keyframes pulseTag{
+    0%,100%{box-shadow:0 0 0 rgba(229,18,26,0);}
+    50%{box-shadow:0 0 12px rgba(229,18,26,0.5);}
+  }
+
+  h1{ font-size:28px; font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+  h1 span{ color:var(--red); }
+  p{ color:var(--grey); margin-bottom:30px; font-size:13.5px; letter-spacing:.3px; }
+  #userName{ color:var(--red); font-weight:700; }
+
+  .btn{
+    width:100%; padding:14px; border:none; border-radius:8px;
+    color:var(--white); font-size:14px; font-weight:700;
+    letter-spacing:1px; text-transform:uppercase;
+    cursor:pointer; position:relative; overflow:hidden;
+    transition:transform .15s, box-shadow .25s, background .25s;
+    font-family:inherit; text-decoration:none;
+    display:inline-block;
+  }
+  .btn-primary{
+    background:var(--red);
+    margin-bottom:14px;
+  }
+  .btn-primary:hover{ background:#ff1b24; box-shadow:0 0 25px rgba(229,18,26,0.5); }
+  .btn-primary::after{
+    content:"";
+    position:absolute; top:0; left:-60%; width:40%; height:100%;
+    background:linear-gradient(120deg, transparent, rgba(255,255,255,0.35), transparent);
+    transform:skewX(-20deg);
+    animation:shine 3.2s ease-in-out infinite;
+  }
+  @keyframes shine{
+    0%{left:-60%;} 50%{left:130%;} 100%{left:130%;}
+  }
+
+  .btn-secondary{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.15);
+    color:var(--grey);
+  }
+  .btn-secondary:hover{ border-color:var(--red); color:var(--white); }
+  .btn:active{ transform:scale(.97); }
+
+  @media (max-width:420px){
+    .box{ padding:36px 26px; }
+    h1{ font-size:22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<canvas id="netCanvas"></canvas>
+<div class="orb red orb1"></div>
+<div class="orb white orb2"></div>
+<div class="orb red orb3"></div>
+<div class="sweep-beam"></div>
+<div class="scanline"></div>
+
+<div class="wrap">
+  <div class="box">
+    <span class="tag">ACCESS GRANTED</span>
+    <h1>Welcome, <span id="userName">User</span></h1>
+    <p>You have successfully logged in to the ictfrom | Free Learn Pack (FLP).</p>
+    <a href="index.html" class="btn btn-primary">Start Learn</a>
+    <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import {
+    getAuth,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import {
+    getDatabase,
+    ref,
+    get
+  } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCagFTgiAReVNf8PxNppg01URkQRPoNw3A",
+    authDomain: "ictfrom-free-learn-pack.firebaseapp.com",
+    databaseURL: "https://ictfrom-free-learn-pack-default-rtdb.firebaseio.com",
+    projectId: "ictfrom-free-learn-pack",
+    storageBucket: "ictfrom-free-learn-pack.firebasestorage.app",
+    messagingSenderId: "621015284854",
+    appId: "1:621015284854:web:850148451720ff2529b357",
+    measurementId: "G-7MPX23W72F"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+  const LOGIN_PAGE = 'login.html'; // <-- our login/register page
+
+  onAuthStateChanged(auth, async (user) => {
+    if(!user){
+      // not logged in — send back to login page
+      window.location.href = LOGIN_PAGE;
+      return;
+    }
+    const snap = await get(ref(db, 'users/' + user.uid));
+    document.getElementById('userName').textContent = snap.exists() ? snap.val().name : 'User';
+  });
+
+  document.getElementById('logoutBtn').onclick = async () => {
+    await signOut(auth);
+    window.location.href = LOGIN_PAGE;
+  };
+
+  // ---- network background (canvas: red/white nodes on black) ----
+  (function(){
+    const canvas = document.getElementById('netCanvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, nodes;
+    const NODE_COUNT = 70;
+    const LINK_DIST = 140;
+    const mouse = { x:null, y:null };
+
+    function resize(){
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function makeNodes(){
+      nodes = [];
+      for(let i=0;i<NODE_COUNT;i++){
+        const isRed = Math.random() < 0.4;
+        nodes.push({
+          x: Math.random()*w,
+          y: Math.random()*h,
+          vx: (Math.random()-0.5)*0.35,
+          vy: (Math.random()-0.5)*0.35,
+          r: isRed ? Math.random()*2+1.4 : Math.random()*1.6+0.8,
+          color: isRed ? '229,18,26' : '245,245,245'
+        });
+      }
+    }
+    makeNodes();
+
+    window.addEventListener('mousemove', e=>{
+      mouse.x = e.clientX; mouse.y = e.clientY;
+    });
+    window.addEventListener('mouseleave', ()=>{ mouse.x=null; mouse.y=null; });
+
+    function step(){
+      ctx.clearRect(0,0,w,h);
+
+      for(const n of nodes){
+        n.x += n.vx; n.y += n.vy;
+        if(n.x < 0 || n.x > w) n.vx *= -1;
+        if(n.y < 0 || n.y > h) n.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(${n.color},0.85)`;
+        ctx.shadowColor = `rgba(${n.color},0.8)`;
+        ctx.shadowBlur = 6;
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+
+      for(let i=0;i<nodes.length;i++){
+        for(let j=i+1;j<nodes.length;j++){
+          const a = nodes[i], b = nodes[j];
+          const dx = a.x-b.x, dy = a.y-b.y;
+          const dist = Math.sqrt(dx*dx+dy*dy);
+          if(dist < LINK_DIST){
+            const alpha = (1 - dist/LINK_DIST) * 0.35;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(229,18,26,${alpha})`;
+            ctx.lineWidth = 0.7;
+            ctx.stroke();
+          }
+        }
+        if(mouse.x !== null){
+          const dx = nodes[i].x-mouse.x, dy = nodes[i].y-mouse.y;
+          const dist = Math.sqrt(dx*dx+dy*dy);
+          if(dist < 160){
+            const alpha = (1 - dist/160) * 0.6;
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.strokeStyle = `rgba(245,245,245,${alpha})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+    step();
+  })();
+</script>
+
+</body>
+</html>
