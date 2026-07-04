@@ -1,229 +1,359 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>ictfrom | Free Learn Pack (FLP)</title>
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="D:\ictfrom Learn Free/logo.png">
-
-
-  
+<head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ictfrom | Free Learn Pack (FLP)</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="images/logo.png">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ictfrom | Free Learn Pack</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  </head>
-  :root{
-    --bg:#0a0a0a;
-    --panel:#141414;
-    --panel-2:#1b1b1b;
-    --line: rgba(255,255,255,0.09);
-    --text:#f5f5f5;
-    --muted:#8f8f8f;
-    --red:#e6231e;
-    --red-dim: rgba(230,35,30,0.14);
-    --radius:14px;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
-    background:var(--bg); color:var(--text);
-    font-family:'Inter',sans-serif; line-height:1.55; overflow-x:hidden;
-  }
-  .display{ font-family:'Space Grotesk',sans-serif; }
-  .mono{ font-family:'JetBrains Mono',monospace; }
-  a{ color:inherit; text-decoration:none; }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-  /* ---- scanline / grid backdrop ---- */
-  .backdrop{
-    position:fixed; inset:0; z-index:0; pointer-events:none;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-    background-size:42px 42px;
-    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 90%);
-            mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 90%);
-  }
-  .redglow{
-    position:fixed; top:-200px; left:50%; transform:translateX(-50%);
-    width:800px; height:500px; z-index:0; pointer-events:none;
-    background:radial-gradient(circle, rgba(230,35,30,0.14), transparent 65%);
-  }
+  <style>
+    :root{
+      --bg:#0a0a0a;
+      --panel:#141414;
+      --panel-2:#1b1b1b;
+      --line: rgba(255,255,255,0.09);
+      --text:#f5f5f5;
+      --muted:#8f8f8f;
+      --red:#e6231e;
+      --red-dim: rgba(230,35,30,0.14);
+      --radius:14px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{
+      background:var(--bg); color:var(--text);
+      font-family:'Inter',sans-serif; line-height:1.55; overflow-x:hidden;
+      position:relative;
+    }
+    .display{ font-family:'Space Grotesk',sans-serif; }
+    .mono{ font-family:'JetBrains Mono',monospace; }
+    a{ color:inherit; text-decoration:none; }
 
-  .wrap{ max-width:1160px; margin:0 auto; padding:0 32px; position:relative; z-index:2; }
+    /* ---- scanline / grid backdrop ---- */
+    .backdrop{
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size:42px 42px;
+      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 90%);
+              mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 90%);
+    }
+    .redglow{
+      position:fixed; top:-200px; left:50%; transform:translateX(-50%);
+      width:800px; height:500px; z-index:0; pointer-events:none;
+      background:radial-gradient(circle, rgba(230,35,30,0.14), transparent 65%);
+    }
 
-  /* ---------- header ---------- */
-  header{
-    position:sticky; top:0; z-index:50;
-    background:rgba(10,10,10,0.75); backdrop-filter:blur(12px);
-    border-bottom:1px solid var(--line);
-  }
-  nav{ display:flex; justify-content:space-between; align-items:center; padding:18px 32px; max-width:1160px; margin:0 auto; }
-  .logo{ display:flex; align-items:center; gap:10px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; }
-  .logo .bracket{ color:var(--red); }
-  .cursor{
-    display:inline-block; width:9px; height:18px; background:var(--red);
-    animation:blink 1s steps(1) infinite; margin-left:2px;
-  }
-  @keyframes blink{ 50%{ opacity:0; } }
-  .nav-links{ display:flex; gap:36px; font-size:14.5px; color:var(--muted); }
-  .nav-links a{ position:relative; transition:color .2s; }
-  .nav-links a:hover{ color:var(--text); }
-  .nav-links a::before{
-    content:"//"; color:var(--red); margin-right:6px; opacity:0; transition:opacity .2s;
-  }
-  .nav-links a:hover::before{ opacity:1; }
-  .btn{
-    padding:11px 22px; border-radius:2px; font-size:13.5px; font-weight:600; font-family:'JetBrains Mono',monospace;
-    border:1px solid var(--line); transition:all .25s; white-space:nowrap;
-  }
-  .btn-solid{ background:var(--red); color:#fff; border:1px solid var(--red); }
-  .btn-solid:hover{ background:#ff2e28; box-shadow:0 0 24px -4px rgba(230,35,30,0.7); transform:translateY(-1px); }
-  .btn-ghost:hover{ border-color:var(--red); color:var(--red); }
+    .wrap{ max-width:1160px; margin:0 auto; padding:0 32px; position:relative; z-index:2; }
 
-  /* ---------- hero ---------- */
-  .hero{ padding:100px 0 80px; }
-  .terminal{
-    background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden;
-    max-width:560px; margin-bottom:34px;
-    opacity:0; transform:translateY(16px); animation:rise .7s .1s forwards ease-out;
-  }
-  .term-bar{ display:flex; align-items:center; gap:7px; padding:11px 14px; border-bottom:1px solid var(--line); background:var(--panel-2); }
-  .term-dot{ width:10px; height:10px; border-radius:50%; }
-  .term-bar span:nth-child(1){ background:#ff5f56; }
-  .term-bar span:nth-child(2){ background:#ffbd2e; }
-  .term-bar span:nth-child(3){ background:#27c93f; }
-  .term-body{ padding:16px 18px; font-family:'JetBrains Mono',monospace; font-size:13.5px; color:#c9c9c9; }
-  .term-body .prompt{ color:var(--red); }
-  .term-body .typed{ border-right:2px solid var(--red); white-space:nowrap; overflow:hidden; display:inline-block; animation:type 3.2s steps(34) 1 forwards; width:0; }
-  @keyframes type{ to{ width:34ch; } }
+    /* ---------- header ---------- */
+    header{
+      position:sticky; top:0; z-index:50;
+      background:rgba(10,10,10,0.75); backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--line);
+    }
+    nav{ display:flex; justify-content:space-between; align-items:center; padding:18px 32px; max-width:1160px; margin:0 auto; }
+    .logo{ display:flex; align-items:center; gap:10px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; }
+    .logo .bracket{ color:var(--red); }
+    .cursor{
+      display:inline-block; width:9px; height:18px; background:var(--red);
+      animation:blink 1s steps(1) infinite; margin-left:2px;
+    }
+    @keyframes blink{ 50%{ opacity:0; } }
+    .nav-links{ display:flex; gap:36px; font-size:14.5px; color:var(--muted); }
+    .nav-links a{ position:relative; transition:color .2s; }
+    .nav-links a:hover{ color:var(--text); }
+    .nav-links a::before{
+      content:"//"; color:var(--red); margin-right:6px; opacity:0; transition:opacity .2s;
+    }
+    .nav-links a:hover::before{ opacity:1; }
+    .btn{
+      padding:11px 22px; border-radius:2px; font-size:13.5px; font-weight:600; font-family:'JetBrains Mono',monospace;
+      border:1px solid var(--line); transition:all .25s; white-space:nowrap; display:inline-block;
+    }
+    .btn-solid{ background:var(--red); color:#fff; border:1px solid var(--red); }
+    .btn-solid:hover{ background:#ff2e28; box-shadow:0 0 24px -4px rgba(230,35,30,0.7); transform:translateY(-1px); }
+    .btn-ghost:hover{ border-color:var(--red); color:var(--red); }
 
-  h1.hero-title{
-    font-family:'Space Grotesk',sans-serif; font-weight:700; line-height:1.06;
-    font-size:clamp(40px,6vw,68px); max-width:760px; margin-bottom:20px;
-    opacity:0; transform:translateY(20px); animation:rise .8s .3s forwards ease-out;
-  }
-  h1.hero-title .accent{ color:var(--red); }
-  .hero-sub{
-    color:var(--muted); font-size:17px; max-width:520px; margin-bottom:36px;
-    opacity:0; transform:translateY(20px); animation:rise .8s .45s forwards ease-out;
-  }
-  .hero-actions{ display:flex; gap:16px;
-    opacity:0; transform:translateY(20px); animation:rise .8s .6s forwards ease-out;
-  }
-  @keyframes rise{ to{ opacity:1; transform:translateY(0); } }
+    /* ---------- hero ---------- */
+    .hero{ padding:100px 0 80px; position:relative; z-index:2; }
+    .hero-container{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:60px;
+    }
+    .hero-left{ flex:1; }
+    .hero-right{
+      flex:1;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+    .hero-right img{
+      width:100%;
+      max-width:420px;
+      border-radius:18px;
+      box-shadow:0 20px 60px rgba(230,35,30,0.25);
+      animation: floatImg 4s ease-in-out infinite;
+    }
+    @keyframes floatImg{
+      0%{ transform:translateY(0px); }
+      50%{ transform:translateY(-10px); }
+      100%{ transform:translateY(0px); }
+    }
 
-  /* ---------- what's inside strip ---------- */
-  .strip{ display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
-  .strip-item{ padding:32px; display:flex; gap:18px; align-items:flex-start; }
-  .strip-item:first-child{ border-right:1px solid var(--line); }
-  .strip-num{ font-family:'JetBrains Mono',monospace; color:var(--red); font-size:13px; }
-  .strip-item h3{ font-family:'Space Grotesk',sans-serif; font-size:19px; margin:4px 0 6px; }
-  .strip-item p{ color:var(--muted); font-size:14px; max-width:340px; }
+    .terminal{
+      background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden;
+      max-width:560px; margin-bottom:34px;
+      opacity:0; transform:translateY(16px); animation:rise .7s .1s forwards ease-out;
+    }
+    .term-bar{ display:flex; align-items:center; gap:7px; padding:11px 14px; border-bottom:1px solid var(--line); background:var(--panel-2); }
+    .term-dot{ width:10px; height:10px; border-radius:50%; }
+    .term-bar span:nth-child(1){ background:#ff5f56; }
+    .term-bar span:nth-child(2){ background:#ffbd2e; }
+    .term-bar span:nth-child(3){ background:#27c93f; }
+    .term-body{ padding:16px 18px; font-family:'JetBrains Mono',monospace; font-size:13.5px; color:#c9c9c9; }
+    .term-body .prompt{ color:var(--red); }
+    .term-body .typed{ border-right:2px solid var(--red); white-space:nowrap; overflow:hidden; display:inline-block; animation:type 3.2s steps(34) 1 forwards; width:0; }
+    @keyframes type{ to{ width:34ch; } }
 
-  .section{ padding:90px 0; }
-  .reveal{ opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease; }
-  .reveal.in{ opacity:1; transform:translateY(0); }
-  .section-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:44px; flex-wrap:wrap; gap:18px; }
-  .tag{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--red); text-transform:uppercase; margin-bottom:10px; display:block; }
-  .section-head h2{ font-family:'Space Grotesk',sans-serif; font-size:clamp(26px,3.2vw,36px); font-weight:700; max-width:480px; }
-  .section-head p{ color:var(--muted); font-size:14.5px; max-width:320px; }
+    h1.hero-title{
+      font-family:'Space Grotesk',sans-serif; font-weight:700; line-height:1.06;
+      font-size:clamp(40px,6vw,68px); max-width:760px; margin-bottom:20px;
+      opacity:0; transform:translateY(20px); animation:rise .8s .3s forwards ease-out;
+    }
+    h1.hero-title .accent{ color:var(--red); }
+    .hero-sub{
+      color:var(--muted); font-size:17px; max-width:520px; margin-bottom:36px;
+      opacity:0; transform:translateY(20px); animation:rise .8s .45s forwards ease-out;
+    }
+    .hero-actions{ display:flex; gap:16px;
+      opacity:0; transform:translateY(20px); animation:rise .8s .6s forwards ease-out;
+    }
+    @keyframes rise{ to{ opacity:1; transform:translateY(0); } }
 
-  /* ---------- video grid ---------- */
-  .video-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
-  .video-card{
-    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
-    overflow:hidden; transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;
-  }
-  .video-card:hover{ transform:translateY(-6px); border-color:rgba(230,35,30,0.5); box-shadow:0 20px 44px -18px rgba(0,0,0,0.7); }
-  .thumb{
-    height:160px; position:relative; background:linear-gradient(135deg,var(--panel-2),#101010);
-    display:flex; align-items:center; justify-content:center; overflow:hidden;
-  }
-  .thumb::before{
-    content:""; position:absolute; inset:0;
-    background-image:repeating-linear-gradient(to bottom, transparent 0 3px, rgba(255,255,255,0.02) 3px 4px);
-  }
-  .play{
-    width:50px; height:50px; border-radius:50%; border:1px solid var(--red);
-    background:rgba(10,10,10,0.5); backdrop-filter:blur(4px);
-    display:flex; align-items:center; justify-content:center; color:var(--red); font-size:15px; z-index:2;
-    transition:transform .3s, background .3s;
-  }
-  .video-card:hover .play{ transform:scale(1.12); background:var(--red); color:#fff; }
-  .duration{
-    position:absolute; bottom:9px; right:9px; font-family:'JetBrains Mono',monospace; font-size:11px;
-    background:rgba(0,0,0,0.75); padding:3px 7px; border-radius:3px; z-index:2;
-  }
-  .ep-tag{
-    position:absolute; top:9px; left:9px; font-family:'JetBrains Mono',monospace; font-size:10.5px;
-    background:var(--red); color:#fff; padding:3px 8px; border-radius:3px; z-index:2; letter-spacing:.03em;
-  }
-  .video-body{ padding:18px 18px 20px; }
-  .video-topic{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--red); text-transform:uppercase; margin-bottom:8px; display:block; }
-  .video-title{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px; margin-bottom:6px; }
-  .video-meta{ color:var(--muted); font-size:12.5px; }
+    /* mobile responsive hero */
+    @media (max-width:900px){
+      .hero-container{
+        flex-direction:column;
+        text-align:center;
+      }
+      .hero-right img{
+        max-width:320px;
+      }
+    }
 
-  /* ---------- notes / tutes ---------- */
-  .notes-list{ display:flex; flex-direction:column; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
-  .note-row{
-    display:flex; align-items:center; justify-content:space-between; padding:20px 24px;
-    border-bottom:1px solid var(--line); transition:background .25s;
-  }
-  .note-row:last-child{ border-bottom:none; }
-  .note-row:hover{ background:var(--panel); }
-  .note-left{ display:flex; align-items:center; gap:16px; }
-  .note-icon{
-    width:42px; height:42px; border-radius:8px; background:var(--red-dim); border:1px solid rgba(230,35,30,0.35);
-    display:flex; align-items:center; justify-content:center; color:var(--red); font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600;
-    flex-shrink:0;
-  }
-  .note-title{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px; }
-  .note-sub{ color:var(--muted); font-size:12.5px; margin-top:3px; }
-  .note-dl{
-    font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--muted);
-    border:1px solid var(--line); padding:8px 16px; border-radius:2px; transition:all .25s; white-space:nowrap;
-  }
-  .note-row:hover .note-dl{ border-color:var(--red); color:var(--red); }
+    /* ---------- what's inside strip ---------- */
+    .strip{ display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--line); border-bottom:1px solid var(--line); position:relative; z-index:2; }
+    .strip-item{ padding:32px; display:flex; gap:18px; align-items:flex-start; }
+    .strip-item:first-child{ border-right:1px solid var(--line); }
+    .strip-num{ font-family:'JetBrains Mono',monospace; color:var(--red); font-size:13px; }
+    .strip-item h3{ font-family:'Space Grotesk',sans-serif; font-size:19px; margin:4px 0 6px; }
+    .strip-item p{ color:var(--muted); font-size:14px; max-width:340px; }
 
-  /* ---------- cta ---------- */
-  .cta-section{
-    border:1px solid var(--line); border-radius:20px; padding:64px 50px; text-align:center;
-    position:relative; overflow:hidden; background:var(--panel);
-  }
-  .cta-section::before{
-    content:""; position:absolute; width:360px; height:360px; border-radius:50%;
-    background:radial-gradient(circle, rgba(230,35,30,0.16), transparent 65%);
-    top:-140px; left:50%; transform:translateX(-50%);
-  }
-  .cta-section h2{ font-family:'Space Grotesk',sans-serif; font-size:clamp(24px,3.4vw,36px); font-weight:700; margin-bottom:14px; position:relative; z-index:2; }
-  .cta-section p{ color:var(--muted); margin-bottom:30px; position:relative; z-index:2; }
-  .cta-actions{ display:flex; gap:16px; justify-content:center; position:relative; z-index:2; }
+    .section{ padding:90px 0; position:relative; z-index:2; }
+    .reveal{ opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease; }
+    .reveal.in{ opacity:1; transform:translateY(0); }
+    .section-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:44px; flex-wrap:wrap; gap:18px; }
+    .tag{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--red); text-transform:uppercase; margin-bottom:10px; display:block; }
+    .section-head h2{ font-family:'Space Grotesk',sans-serif; font-size:clamp(26px,3.2vw,36px); font-weight:700; max-width:480px; }
+    .section-head p{ color:var(--muted); font-size:14.5px; max-width:320px; }
 
-  footer{ border-top:1px solid var(--line); padding:40px 0; margin-top:30px; }
-  .footer-row{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; font-size:13px; color:var(--muted); }
-  .footer-row .mono{ color:var(--muted); }
+    /* ---------- video grid ---------- */
+    .video-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+    .video-card{
+      background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+      overflow:hidden; transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;
+    }
+    .video-card:hover{ transform:translateY(-6px); border-color:rgba(230,35,30,0.5); box-shadow:0 20px 44px -18px rgba(0,0,0,0.7); }
+    .thumb{
+      position:relative;
+      aspect-ratio:20 / 9;
+      overflow:hidden;
+      background:linear-gradient(135deg,var(--panel-2),#101010);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .thumb::before{
+      content:""; position:absolute; inset:0; z-index:1;
+      background-image:repeating-linear-gradient(to bottom, transparent 0 3px, rgba(255,255,255,0.02) 3px 4px);
+    }
+    .thumb-img{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:center;
+      display:block;
+      transition:transform .35s ease;
+    }
+    .video-card:hover .thumb-img{ transform:scale(1.05); }
+    .play{
+      width:50px; height:50px; border-radius:50%; border:1px solid var(--red);
+      background:rgba(10,10,10,0.5); backdrop-filter:blur(4px);
+      display:flex; align-items:center; justify-content:center; color:var(--red); font-size:15px; z-index:2;
+      transition:transform .3s, background .3s;
+    }
+    .video-card:hover .play{ transform:scale(1.12); background:var(--red); color:#fff; }
+    .duration{
+      position:absolute; bottom:9px; right:9px; font-family:'JetBrains Mono',monospace; font-size:11px;
+      background:rgba(0,0,0,0.75); padding:3px 7px; border-radius:3px; z-index:2;
+    }
+    .ep-tag{
+      position:absolute; top:9px; left:9px; font-family:'JetBrains Mono',monospace; font-size:10.5px;
+      background:var(--red); color:#fff; padding:3px 8px; border-radius:3px; z-index:2; letter-spacing:.03em;
+    }
+    .video-body{ padding:18px 18px 20px; }
+    .video-topic{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--red); text-transform:uppercase; margin-bottom:8px; display:block; }
+    .video-title{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px; margin-bottom:6px; }
+    .video-meta{ color:var(--muted); font-size:12.5px; }
 
-  @media (max-width:980px){
-    .strip{ grid-template-columns:1fr; }
-    .strip-item:first-child{ border-right:none; border-bottom:1px solid var(--line); }
-    .video-grid{ grid-template-columns:1fr; }
-    .nav-links{ display:none; }
-    .note-row{ flex-direction:column; align-items:flex-start; gap:12px; }
-  }
-</style>
+    /* ---------- notes / tutes ---------- */
+    .notes-list{ display:flex; flex-direction:column; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
+    .note-row{
+      display:flex; align-items:center; justify-content:space-between; padding:20px 24px;
+      border-bottom:1px solid var(--line); transition:background .25s;
+    }
+    .note-row:last-child{ border-bottom:none; }
+    .note-row:hover{ background:var(--panel); }
+    .note-left{ display:flex; align-items:center; gap:16px; }
+    .note-icon{
+      width:42px; height:42px; border-radius:8px; background:var(--red-dim); border:1px solid rgba(230,35,30,0.35);
+      display:flex; align-items:center; justify-content:center; color:var(--red); font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600;
+      flex-shrink:0;
+    }
+    .note-title{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px; }
+    .note-sub{ color:var(--muted); font-size:12.5px; margin-top:3px; }
+    .note-dl{
+      font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--muted);
+      border:1px solid var(--line); padding:8px 16px; border-radius:2px; transition:all .25s; white-space:nowrap;
+    }
+    .note-row:hover .note-dl{ border-color:var(--red); color:var(--red); }
+
+    /* ---------- cta ---------- */
+    .cta-section{
+      border:1px solid var(--line); border-radius:20px; padding:64px 50px; text-align:center;
+      position:relative; overflow:hidden; background:var(--panel);
+    }
+    .cta-section::before{
+      content:""; position:absolute; width:360px; height:360px; border-radius:50%;
+      background:radial-gradient(circle, rgba(230,35,30,0.16), transparent 65%);
+      top:-140px; left:50%; transform:translateX(-50%);
+    }
+    .cta-section h2{ font-family:'Space Grotesk',sans-serif; font-size:clamp(24px,3.4vw,36px); font-weight:700; margin-bottom:14px; position:relative; z-index:2; }
+    .cta-section p{ color:var(--muted); margin-bottom:30px; position:relative; z-index:2; }
+    .cta-actions{ display:flex; gap:16px; justify-content:center; position:relative; z-index:2; }
+
+    footer{ border-top:1px solid var(--line); padding:40px 0; margin-top:30px; position:relative; z-index:2; }
+    .footer-row{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; font-size:13px; color:var(--muted); }
+    .footer-row .mono{ color:var(--muted); }
+
+    /* ===========================
+       CINEMATIC RED BACKGROUND
+    =========================== */
+    .bg-animation{
+      position:fixed;
+      inset:0;
+      z-index:-10;
+      overflow:hidden;
+    }
+    .bg-animation::before{
+      content:"";
+      position:absolute;
+      width:900px;
+      height:900px;
+      background:radial-gradient(circle, rgba(255,0,0,.18), transparent 70%);
+      top:-250px;
+      left:-250px;
+      filter:blur(90px);
+      animation:moveGlow1 20s ease-in-out infinite alternate;
+    }
+    .bg-animation::after{
+      content:"";
+      position:absolute;
+      width:800px;
+      height:800px;
+      background:radial-gradient(circle, rgba(255,255,255,.05), transparent 70%);
+      bottom:-200px;
+      right:-200px;
+      filter:blur(120px);
+      animation:moveGlow2 18s ease-in-out infinite alternate;
+    }
+    @keyframes moveGlow1{
+      0%{ transform:translate(0,0); }
+      100%{ transform:translate(250px,150px); }
+    }
+    @keyframes moveGlow2{
+      0%{ transform:translate(0,0); }
+      100%{ transform:translate(-200px,-120px); }
+    }
+    .grid{
+      position:fixed;
+      inset:0;
+      z-index:-9;
+      background-image:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size:50px 50px;
+      animation:gridMove 25s linear infinite;
+    }
+    @keyframes gridMove{
+      from{ background-position:0 0; }
+      to{ background-position:50px 50px; }
+    }
+    .particles{
+      position:fixed;
+      inset:0;
+      overflow:hidden;
+      pointer-events:none;
+      z-index:-8;
+    }
+    .particles span{
+      position:absolute;
+      display:block;
+      width:3px;
+      height:3px;
+      background:#ffffff;
+      border-radius:50%;
+      opacity:.25;
+      animation:floatParticle linear infinite;
+    }
+    @keyframes floatParticle{
+      from{ transform:translateY(110vh); }
+      to{ transform:translateY(-120vh); }
+    }
+
+    @media (max-width:980px){
+      .strip{ grid-template-columns:1fr; }
+      .strip-item:first-child{ border-right:none; border-bottom:1px solid var(--line); }
+      .video-grid{ grid-template-columns:1fr; }
+      .nav-links{ display:none; }
+      .note-row{ flex-direction:column; align-items:flex-start; gap:12px; }
+    }
+  </style>
 </head>
 <body>
+
+<div class="bg-animation"></div>
+<div class="grid"></div>
+<div class="particles">
+  <span style="left:5%;animation-duration:12s;"></span>
+  <span style="left:12%;animation-duration:18s;"></span>
+  <span style="left:20%;animation-duration:15s;"></span>
+  <span style="left:30%;animation-duration:20s;"></span>
+  <span style="left:40%;animation-duration:13s;"></span>
+  <span style="left:50%;animation-duration:17s;"></span>
+  <span style="left:60%;animation-duration:21s;"></span>
+  <span style="left:70%;animation-duration:16s;"></span>
+  <span style="left:80%;animation-duration:22s;"></span>
+  <span style="left:90%;animation-duration:14s;"></span>
+</div>
 
 <div class="backdrop"></div>
 <div class="redglow"></div>
@@ -243,49 +373,49 @@
 <main class="wrap">
 
   <!-- HERO -->
-<section class="hero">
-  <div class="hero-container">
+  <section class="hero">
+    <div class="hero-container">
 
-    <!-- LEFT SIDE (TEXT) -->
-    <div class="hero-left">
+      <!-- LEFT SIDE (TEXT) -->
+      <div class="hero-left">
 
-      <div class="terminal">
-        <div class="term-bar">
-          <span class="term-dot"></span>
-          <span class="term-dot"></span>
-          <span class="term-dot"></span>
+        <div class="terminal">
+          <div class="term-bar">
+            <span class="term-dot"></span>
+            <span class="term-dot"></span>
+            <span class="term-dot"></span>
+          </div>
+          <div class="term-body">
+            <span class="prompt">student@ict:Sithija</span>
+            <span class="typed">ls ./lessons --format=video,notes</span>
+          </div>
         </div>
-        <div class="term-body">
-          <span class="prompt">student@ict:Sithija</span>
-          <span class="typed">ls ./lessons --format=video,notes</span>
-        </div>
-      </div>
 
-      <h1 class="hero-title">
-        | Ravindu Bandaranayake<br>
-        <span class="accent">| AL IT Video Pack</span>
-      </h1>
+        <h1 class="hero-title">
+          | Ravindu Bandaranayake<br>
+          <span class="accent">| AL IT Video Pack</span>
+        </h1>
 
-      <p class="hero-sub">
-        »© ictfromabc | Ravidu.Bandaranayake <br>
+        <p class="hero-sub">
+          »© ictfromabc | Ravidu.Bandaranayake <br>
           » මෙහි ඇතුළත් සියලුම Video පටයහි සහ PDF නිබන්ධනයන්ගේ අයිතිය ictfromabc ආයතනයේ Ravidu Bandaranayake ගුරුතුමා සතුව පවතින බව දැනුම් දෙමි.<br>
-          » Contact for Join ictfromabc ,  071 455 5513
-      </p>
+          » Contact for Join ictfromabc , 071 455 5513
+        </p>
 
-      <div class="hero-actions">
-        <a href="#videos" class="btn btn-solid">Watch Lessons</a>
-        <a href="#notes" class="btn btn-ghost">Download Notes</a>
+        <div class="hero-actions">
+          <a href="#videos" class="btn btn-solid">Watch Lessons</a>
+          <a href="#notes" class="btn btn-ghost">Download Notes</a>
+        </div>
+
+      </div>
+
+      <!-- RIGHT SIDE (IMAGE) -->
+      <div class="hero-right">
+        <img src="images/logo.png" alt="ICT Learning">
       </div>
 
     </div>
-
-    <!-- RIGHT SIDE (IMAGE) -->
-    <div class="hero-right">
-      <img src="D:\ictfrom Learn Free/logo.png" alt="ICT Learning" />
-    </div>
-
-  </div>
-</section>
+  </section>
 
   <!-- WHAT'S INSIDE -->
   <section class="strip reveal">
@@ -295,16 +425,17 @@
         <h3>Video Lessons</h3>
         <p>»© ictfromabc | Ravidu.Bandaranayake <br>
           » මෙහි ඇතුළත් සියලුම Video පටයහි අයිතිය ictfromabc ආයතනයේ Ravidu Bandaranayake ගුරුතුමා සතුව පවතින බව දැනුම් දෙමි.<br>
-          » Contact for Join ictfromabc ,  071 455 5513</p>
+          » Contact for Join ictfromabc , 071 455 5513</p>
       </div>
     </div>
     <div class="strip-item">
       <div class="strip-num">02</div>
       <div>
         <h3>Notes & Tutes</h3>
-<p>»© ictfromabc | Ravidu.Bandaranayake <br>
+        <p>»© ictfromabc | Ravidu.Bandaranayake <br>
           » මෙහි ඇතුළත් සියලුම PDF නිබන්ධනයන්ගේ අයිතිය ictfromabc ආයතනයේ Ravidu Bandaranayake ගුරුතුමා සතුව පවතින බව දැනුම් දෙමි.<br>
-          » Contact for Join ictfromabc ,  071 455 5513</p>      </div>
+          » Contact for Join ictfromabc , 071 455 5513</p>
+      </div>
     </div>
   </section>
 
@@ -319,59 +450,43 @@
     </div>
     <div class="video-grid">
 
-<a href="D:\ictfrom Learn Free\All Lessons\Lesson 01 (2028)/index.html">
-  <div class="video-card reveal">
-    <div class="thumb">
-      <img src="D:\ictfrom Learn Free\image/lesson01.png" alt="What is a Computer System?" class="thumb-img">
-      <span class="ep-tag">AL2028 | Lesson 01 |</span>
-      <div class="play">▶</div>
-      <span class="duration">10 VID</span>
-    </div>
-    <div class="video-body">
-      <span class="video-topic">Lesson 01 | 11 Videos  </span>
-      <div class="video-title">Basic Concepts Of ICT</div>
-      <div class="video-meta">© ictfromabc | Ravidu.Bandaranayake <br>
-» මෙහි ඇතුළත් සියලුම Video පටයහි අයිතිය ictfromabc ආයතනයේ Ravidu Bandaranayake ගුරුතුමා සතුව පවතින බව දැනුම් දෙමි <br>
-» Contact for Join ictfromabc ,  071 455 5513</div>
-    </div>
-  </div>
-</a>
+      <a href="All Lessons/Lesson 01 (2028)/index.html">
+        <div class="video-card reveal">
+          <div class="thumb">
+            <img src="image/lesson01.png" alt="Basic Concepts Of ICT" class="thumb-img">
+            <span class="ep-tag">AL2028 | Lesson 01 |</span>
+            <div class="play">▶</div>
+            <span class="duration">11 VID</span>
+          </div>
+          <div class="video-body">
+            <span class="video-topic">Lesson 01 | 11 Videos</span>
+            <div class="video-title">Basic Concepts Of ICT</div>
+            <div class="video-meta">© ictfromabc | Ravidu.Bandaranayake <br>
+              » මෙහි ඇතුළත් සියලුම Video පටයහි අයිතිය ictfromabc ආයතනයේ Ravidu Bandaranayake ගුරුතුමා සතුව පවතින බව දැනුම් දෙමි <br>
+              » Contact for Join ictfromabc , 071 455 5513</div>
+          </div>
+        </div>
+      </a>
 
- <a href="D:\ictfrom Learn Free\All Lessons\Lesson 02 (2028)/index.html">
-  <div class="video-card reveal">
-    <div class="thumb">
-      <img src="D:\ictfrom Learn Free\image/lesson02.png" alt="What is a Computer System?" class="thumb-img">
-      <span class="ep-tag">AL2028 | Lesson 02 |</span>
-      <div class="play">▶</div>
-      <span class="duration">05 VID</span>
-    </div>
-    <div class="video-body">
-      <span class="video-topic">Lesson 02 | 05 Videos</span>
-      <div class="video-title">Evolution Of Computing</div>
-      <div class="video-meta">© ictfromabc | Ravidu.Bandaranayake <br>
-» මෙහි ඇතුළත් සියලුම Video පටයහි අයිතිය ictfromabc ආයතනයේ Ravidu Bandaranayake ගුරුතුමා සතුව පවතින බව දැනුම් දෙමි <br>
-» Contact for Join ictfromabc ,  071 455 5513</div>
-    </div>
-  </div>
-</a>
+      <a href="All Lessons/Lesson 02 (2028)/index.html">
+        <div class="video-card reveal">
+          <div class="thumb">
+            <img src="image/lesson02.png" alt="Evolution Of Computing" class="thumb-img">
+            <span class="ep-tag">AL2028 | Lesson 02 |</span>
+            <div class="play">▶</div>
+            <span class="duration">05 VID</span>
+          </div>
+          <div class="video-body">
+            <span class="video-topic">Lesson 02 | 05 Videos</span>
+            <div class="video-title">Evolution Of Computing</div>
+            <div class="video-meta">© ictfromabc | Ravidu.Bandaranayake <br>
+              » මෙහි ඇතුළත් සියලුම Video පටයහි අයිතිය ictfromabc ආයතනයේ Ravidu Bandaranayake ගුරුතුමා සතුව පවතින බව දැනුම් දෙමි <br>
+              » Contact for Join ictfromabc , 071 455 5513</div>
+          </div>
+        </div>
+      </a>
 
-
-
-
-
-
-
-
-<!--Location for new lessons up load-->
-
-
-
-
-
-
-
-
-
+      <!-- Location for new lessons upload -->
 
     </div>
   </section>
@@ -439,36 +554,32 @@
     </div>
   </section>
 
-  
-<!-- ABOUT -->
-<section class="section" id="about">
-  <div class="section-head reveal">
-    <div>
-      <span class="tag">// about</span>
-      <h2>About ictfrom | FLP</h2>
+  <!-- ABOUT -->
+  <section class="section" id="about">
+    <div class="section-head reveal">
+      <div>
+        <span class="tag">// about</span>
+        <h2>About ictfrom | FLP</h2>
+      </div>
+      Designer | S.Jayanga
     </div>
-     Designer | S.Jayanga 
-  </div>
 
-  <div style="max-width:800px; margin:auto; color:var(--muted); line-height:1.8;">
-    <p>
-      »© ictfromabc | Ravidu.Bandaranayake <br>
-          » මෙහි ඇතුළත් සියලුම Video පටයහි සහ PDF නිබන්ධනයන්ගේ අයිතිය ictfromabc ආයතනයේ Ravidu Bandaranayake ගුරුතුමා සතුව පවතින බව දැනුම් දෙමි.<br>
-          » Contact for Join ictfromabc ,  071 455 5513
-    </p>
-    <br>
-
-    <p>
-      » මෙහි සම්පූර්ණ අයිතිය | Ravindu Bandaranayake ගුරුතුම‍ා‍ සතුව පවතී.
-      
-    </p>
-    <br>
-
-    <p style="color:var(--text); font-weight:500;">
-      © ictfromabc | Ravidu Bandaranayake
-    </p>
-  </div>
-</section>
+    <div style="max-width:800px; margin:auto; color:var(--muted); line-height:1.8;">
+      <p>
+        »© ictfromabc | Ravidu.Bandaranayake <br>
+        » මෙහි ඇතුළත් සියලුම Video පටයහි සහ PDF නිබන්ධනයන්ගේ අයිතිය ictfromabc ආයතනයේ Ravidu Bandaranayake ගුරුතුමා සතුව පවතින බව දැනුම් දෙමි.<br>
+        » Contact for Join ictfromabc , 071 455 5513
+      </p>
+      <br>
+      <p>
+        » මෙහි සම්පූර්ණ අයිතිය | Ravindu Bandaranayake ගුරුතුම‍ා‍ සතුව පවතී.
+      </p>
+      <br>
+      <p style="color:var(--text); font-weight:500;">
+        © ictfromabc | Ravidu Bandaranayake
+      </p>
+    </div>
+  </section>
 
   <!-- CTA -->
   <section class="section" style="padding-top:10px;">
@@ -489,7 +600,7 @@
     <div class="footer-row">
       <div class="logo" style="font-size:15px;"><span class="bracket">&lt;</span>abcfrom | Free Learn Pack (FLP)<span class="bracket">/&gt;</span></div>
       <span>© Ravindu Bandaranayake | Sithija Jayanga.W</span>
-      <span class="mono">Designer | S.Jayanga </span>
+      <span class="mono">Designer | S.Jayanga</span>
     </div>
   </div>
 </footer>
@@ -508,19 +619,4 @@
 </script>
 
 </body>
-<div class="bg-animation"></div>
-<div class="grid"></div>
-
-<div class="particles">
-  <span style="left:5%;animation-duration:12s;"></span>
-  <span style="left:12%;animation-duration:18s;"></span>
-  <span style="left:20%;animation-duration:15s;"></span>
-  <span style="left:30%;animation-duration:20s;"></span>
-  <span style="left:40%;animation-duration:13s;"></span>
-  <span style="left:50%;animation-duration:17s;"></span>
-  <span style="left:60%;animation-duration:21s;"></span>
-  <span style="left:70%;animation-duration:16s;"></span>
-  <span style="left:80%;animation-duration:22s;"></span>
-  <span style="left:90%;animation-duration:14s;"></span>
-</div>
 </html>
