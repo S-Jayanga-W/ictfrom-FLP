@@ -177,7 +177,7 @@
     <span class="tag">ACCESS GRANTED</span>
     <h1>Welcome, <span id="userName">User</span></h1>
     <p>You have successfully logged in to the ictfrom | Free Learn Pack (FLP).</p>
-    <a href="Home.html" class="btn btn-primary">Start Learn</a>
+    <a href="index.html" class="btn btn-primary">Start Learn</a>
     <button id="logoutBtn" class="btn btn-secondary">Logout</button>
   </div>
 </div>
@@ -209,7 +209,7 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getDatabase(app);
-  const LOGIN_PAGE = 'login.html'; // <-- our login/register page
+  const LOGIN_PAGE = 'index.html'; // <-- our login/register page
 
   onAuthStateChanged(auth, async (user) => {
     if(!user){
