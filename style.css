@@ -9,7 +9,7 @@
   position: absolute;
   inset: 0;
   width: 100%;
-  height: 110%;
+  height: 100%;
   object-fit: cover;      /* image eka thumb eke shape ekata crop wela fit wenawa, stretch wenne na */
   object-position: center;
   display: block;
