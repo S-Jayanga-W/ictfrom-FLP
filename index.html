@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ictfrom | Initializing Secure Session</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#050506;
+    --panel:#0b0c0e;
+    --red:#ff2438;
+    --red-dim:#7a0d17;
+    --red-glow:#ff4d5e;
+    --text:#d7dade;
+    --muted:#5c6169;
+    --line:#2a1015;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{
+    height:100%;
+    background:var(--bg);
+    font-family:'JetBrains Mono', monospace;
+    color:var(--text);
+    overflow:hidden;
+  }
+  canvas#net{
+    position:fixed; inset:0; width:100%; height:100%; z-index:0;
+  }
+  .vignette{
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.85) 100%);
+  }
+  .scanline{
+    position:fixed; inset:0; z-index:2; pointer-events:none;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.015) 0px,
+      rgba(255,255,255,0.015) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode:overlay;
+  }
+
+  .stage{
+    position:relative; z-index:3;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+
+  .console{
+    width:100%;
+    max-width:620px;
+    background:linear-gradient(180deg, rgba(15,10,11,0.9), rgba(7,5,6,0.95));
+    border:1px solid var(--line);
+    box-shadow:0 0 0 1px rgba(255,36,56,0.05), 0 30px 80px -20px rgba(0,0,0,0.8), 0 0 60px -30px rgba(255,36,56,0.25);
+    border-radius:2px;
+    overflow:hidden;
+  }
+
+  .console-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px;
+    border-bottom:1px solid var(--line);
+    background:rgba(255,36,56,0.03);
+  }
+  .dots{display:flex; gap:6px;}
+  .dot{width:9px;height:9px;border-radius:50%;background:#2a1015;border:1px solid var(--red-dim);}
+  .console-title{
+    font-size:11px; letter-spacing:2px; color:var(--muted); text-transform:uppercase;
+  }
+  .console-title b{color:var(--red);}
+
+  .console-body{
+    padding:28px 26px 24px;
+    min-height:260px;
+    display:flex; flex-direction:column;
+  }
+
+  .lines{
+    font-size:13px; line-height:1.9;
+    flex:1;
+  }
+  .lines .ln{
+    opacity:0;
+    white-space:pre-wrap;
+    animation:reveal 0.15s forwards;
+  }
+  .lines .ok{color:#3ddc84;}
+  .lines .tag{color:var(--red); font-weight:700;}
+  .lines .dim{color:var(--muted);}
+  .cursor{
+    display:inline-block; width:7px; height:14px; background:var(--red);
+    vertical-align:-2px; margin-left:2px;
+    animation:blink 1s steps(1) infinite;
+  }
+  @keyframes reveal{ to{opacity:1;} }
+  @keyframes blink{ 50%{opacity:0;} }
+
+  .progress-wrap{
+    margin-top:22px;
+  }
+  .progress-label{
+    display:flex; justify-content:space-between;
+    font-size:11px; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase;
+    margin-bottom:8px;
+  }
+  .progress-label span.pct{color:var(--red); font-weight:700;}
+  .track{
+    height:6px; background:#150a0c; border:1px solid var(--line); border-radius:2px; overflow:hidden;
+    position:relative;
+  }
+  .fill{
+    height:100%; width:0%;
+    background:linear-gradient(90deg, var(--red-dim), var(--red), var(--red-glow));
+    box-shadow:0 0 12px rgba(255,36,56,0.6);
+    transition:width 0.15s linear;
+  }
+
+  .footer-row{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:20px; font-size:10.5px; color:var(--muted); letter-spacing:1px;
+  }
+  .footer-row .badge{
+    border:1px solid var(--red-dim); color:var(--red); padding:3px 8px; border-radius:2px; font-size:10px; letter-spacing:2px;
+  }
+
+  .headline{
+    text-align:center; margin-bottom:22px;
+  }
+  .headline .brand{
+    font-family:'Space Mono', monospace;
+    font-size:28px; font-weight:700; letter-spacing:1px;
+    color:#fff;
+  }
+  .headline .brand b{color:var(--red);}
+  .headline .sub{
+    margin-top:6px; font-size:11px; color:var(--muted); letter-spacing:3px; text-transform:uppercase;
+  }
+
+  .enter-btn{
+    margin-top:22px;
+    width:100%;
+    padding:14px;
+    background:var(--red);
+    color:#0b0508;
+    border:none;
+    border-radius:2px;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    letter-spacing:2px;
+    font-size:13px;
+    cursor:pointer;
+    opacity:0;
+    transform:translateY(6px);
+    transition:opacity 0.4s ease, transform 0.4s ease, background 0.2s ease;
+    pointer-events:none;
+  }
+  .enter-btn.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
+  .enter-btn:hover{ background:var(--red-glow); }
+
+  @media (max-width:480px){
+    .console-body{padding:20px 18px;}
+    .headline .brand{font-size:22px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .lines .ln{animation:none; opacity:1;}
+    .cursor{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="net"></canvas>
+<div class="vignette"></div>
+<div class="scanline"></div>
+
+<div class="stage">
+  <div class="console">
+    <div class="console-bar">
+      <div class="dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <div class="console-title">SESSION::<b>BOOT</b></div>
+    </div>
+
+    <div class="console-body">
+      <div class="headline">
+        <div class="brand">ICT<b>FROM</b></div>
+        <div class="sub">Free Learn Pack &mdash; Secure Gateway</div>
+      </div>
+
+      <div class="lines" id="lines"></div>
+
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Establishing secure channel</span>
+          <span class="pct" id="pct">0%</span>
+        </div>
+        <div class="track"><div class="fill" id="fill"></div></div>
+      </div>
+
+      <div class="footer-row">
+        <span id="status">Handshake in progress…</span>
+        <span class="badge">TLS OK</span>
+      </div>
+
+      <button class="enter-btn" id="enterBtn">ENTER SECURE AREA →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- background network animation ---------- */
+const canvas = document.getElementById('net');
+const ctx = canvas.getContext('2d');
+let w, h, nodes;
+
+function resize(){
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+}
+function initNodes(){
+  const count = Math.min(70, Math.floor((w*h)/22000));
+  nodes = Array.from({length:count}, () => ({
+    x: Math.random()*w,
+    y: Math.random()*h,
+    vx: (Math.random()-0.5)*0.25,
+    vy: (Math.random()-0.5)*0.25,
+    r: Math.random()*1.6 + 0.6
+  }));
+}
+window.addEventListener('resize', () => { resize(); initNodes(); });
+resize(); initNodes();
+
+function tick(){
+  ctx.clearRect(0,0,w,h);
+  for(const n of nodes){
+    n.x += n.vx; n.y += n.vy;
+    if(n.x<0||n.x>w) n.vx*=-1;
+    if(n.y<0||n.y>h) n.vy*=-1;
+  }
+  for(let i=0;i<nodes.length;i++){
+    for(let j=i+1;j<nodes.length;j++){
+      const a=nodes[i], b=nodes[j];
+      const dx=a.x-b.x, dy=a.y-b.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<130){
+        ctx.strokeStyle = `rgba(255,40,56,${(1-dist/130)*0.18})`;
+        ctx.lineWidth=1;
+        ctx.beginPath();
+        ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+        ctx.stroke();
+      }
+    }
+  }
+  for(const n of nodes){
+    ctx.beginPath();
+    ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
+    ctx.fill();
+  }
+  requestAnimationFrame(tick);
+}
+tick();
+
+/* ---------- boot sequence terminal ---------- */
+const bootLines = [
+  { text: "> initializing ictfrom kernel…", cls:"dim" },
+  { text: "> loading module: FREE-LEARN-PACK (FLP)", cls:"" },
+  { text: "> verifying node integrity ..... <span class='ok'>OK</span>", cls:"" },
+  { text: "> encrypting handshake with AES-256 ..... <span class='ok'>OK</span>", cls:"" },
+  { text: "> <span class='tag'>SECURE ACCESS</span> point located", cls:"" },
+  { text: "> redirecting to login gateway<span class='cursor'></span>", cls:"" },
+];
+
+const linesEl = document.getElementById('lines');
+const fillEl = document.getElementById('fill');
+const pctEl = document.getElementById('pct');
+const statusEl = document.getElementById('status');
+const enterBtn = document.getElementById('enterBtn');
+
+// CHANGE THIS to your real login page path/URL
+const LOGIN_URL = "login.html";
+
+let li = 0;
+function addLine(){
+  if(li >= bootLines.length) { startProgress(); return; }
+  const div = document.createElement('div');
+  div.className = 'ln';
+  div.innerHTML = bootLines[li].text;
+  linesEl.appendChild(div);
+  li++;
+  setTimeout(addLine, 420);
+}
+addLine();
+
+function startProgress(){
+  let p = 0;
+  const iv = setInterval(() => {
+    p += Math.random()*9 + 3;
+    if(p >= 100){
+      p = 100;
+      clearInterval(iv);
+      statusEl.textContent = "Connection secured. Ready.";
+      enterBtn.classList.add('show');
+      setTimeout(() => { window.location.href = LOGIN_URL; }, 1600);
+    }
+    fillEl.style.width = p + "%";
+    pctEl.textContent = Math.floor(p) + "%";
+  }, 180);
+}
+
+enterBtn.addEventListener('click', () => {
+  window.location.href = LOGIN_URL;
+});
+</script>
+</body>
+</html>
