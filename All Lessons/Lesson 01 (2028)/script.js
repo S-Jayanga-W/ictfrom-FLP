@@ -16,10 +16,10 @@ const episodes = [
   { ep:"04", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.03.24", title:"P4 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"14:20", thumb:"thumbnails/lesson01-thumbnail4.png", youtube:"https://youtu.be/YgS7DHCscYo" },
   { ep:"05", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.03.31", title:"P5 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"14:20", thumb:"thumbnails/lesson01-thumbnail5.png", youtube:"https://youtu.be/fiAOzehc7as" },
   { ep:"06", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.07", title:"P6 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"14:20", thumb:"thumbnails/lesson01-thumbnail6.png", youtube:"https://youtu.be/p8Ve9LUeDqQ" },
-  { ep:"07", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.21", title:"P7 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"14:20", thumb:"thumbnails/lesson01-thumbnail7.png", youtube:"https://www.youtube.com/watch?v=Vs0pmX-IIrA" },
+  { ep:"07", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.21", title:"P7 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"14:20", thumb:"thumbnails/lesson01-thumbnail7C.png", youtube:"" },
   { ep:"08", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.28", title:"P8 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"14:20", thumb:"thumbnails/lesson01-thumbnail8.png", youtube:"https://youtu.be/SeVNiPtP-ww" },
-  { ep:"09", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.05", title:"P9 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"14:20", thumb:"thumbnails/lesson01-thumbnail9.png", youtube:"https://www.youtube.com/watch?v=Vs0pmX-IIrA" },
-  { ep:"10", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.12", title:"P10 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"14:20", thumb:"thumbnails/lesson01-thumbnail10.png", youtube:"https://www.youtube.com/watch?v=Vs0pmX-IIrA" },
+  { ep:"09", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.05", title:"P9 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"14:20", thumb:"thumbnails/lesson01-thumbnail7C.png", youtube:"" },
+  { ep:"10", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.12", title:"P10 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"14:20", thumb:"thumbnails/lesson01-thumbnail7C.png", youtube:"" },
 
 ];
 
