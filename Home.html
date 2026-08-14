@@ -381,8 +381,6 @@
     }
   </style>
 
- 
-
 </head>
 <body>
 
@@ -540,23 +538,8 @@
         </div>
       </a>
 
-
-
-
-
-
-
-      
       <!-- Location for new lessons upload -->
 
-
-
-
-
-
-
-
-      
     </div>
   </section>
 
@@ -619,28 +602,6 @@
         <a href="https://www.ictfromabc.com/storage/tutes/50002_2026-07-28_05-16-05.pdf" class="note-dl">↓ Download</a>
       </div>
         </a>
-      <!--
-      <div class="note-row">
-        <div class="note-left">
-          <div class="note-icon">PDF</div>
-          <div>
-            <div class="note-title">Unit 04 — Networking (Notes)</div>
-            <div class="note-sub">10 pages · Diagram-heavy</div>
-          </div>
-        </div>
-        <a href="#" class="note-dl">↓ Download</a>
-      </div>
-      <div class="note-row">
-        <div class="note-left">
-          <div class="note-icon">PDF</div>
-          <div>
-            <div class="note-title">Unit 05 — Programming (Notes + Tute)</div>
-            <div class="note-sub">22 pages · Algorithm exercises</div>
-          </div>
-        </div>
-        <a href="#" class="note-dl">↓ Download</a>
-      </div>
-      -->
     </div>
   </section>
 
@@ -736,7 +697,7 @@
 </script>
 
 <!-- =========================================================
-     FIREBASE AUTH + AUTO-LOGOUT (12 (recorded) HOUR SESSION LIMIT)
+     FIREBASE AUTH + AUTO-LOGOUT (1 MINUTE IDLE LIMIT)
      ========================================================= -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -766,32 +727,33 @@
   let idleTimer = null;
 
   async function forceIdleLogout(){
+    if(idleTimer){
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
     try{ await signOut(auth); }catch(e){}
     window.location.href = LOGIN_PAGE + '?expired=1';
   }
 
   function resetIdleTimer(){
     if(idleTimer) clearTimeout(idleTimer);
-    // only start counting if user is logged in
     if(auth.currentUser){
       idleTimer = setTimeout(forceIdleLogout, IDLE_LIMIT_MS);
     }
   }
 
-  // Activity events that count as "user is active"
   const activityEvents = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
   activityEvents.forEach(evt => {
     window.addEventListener(evt, resetIdleTimer, { passive: true });
   });
 
-  // Also reset when the tab becomes visible again
   document.addEventListener('visibilitychange', () => {
     if(document.visibilityState === 'visible') resetIdleTimer();
   });
 
   onAuthStateChanged(auth, (user)=>{
     if(user){
-      resetIdleTimer(); // start the idle clock once we know user is logged in
+      resetIdleTimer();
     } else if(idleTimer){
       clearTimeout(idleTimer);
       idleTimer = null;
