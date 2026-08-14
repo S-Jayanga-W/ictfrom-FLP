@@ -80,5 +80,40 @@
   }, 60 * 1000);
 </script>
 
+   <script src="inactivity.js">
+    let inactivityTime = function () {
+  let timer;
+
+  // Timer එක reset කරලා අලුතෙන් ආරම්භ කරන function එක
+  const resetTimer = () => {
+    clearTimeout(timer);
+    timer = setTimeout(logoutUser, 60 * 1000); // 1 minute = 60000ms
+  };
+
+  // Logout කරන function එක
+  const logoutUser = () => {
+    // ඔයාගේ backend එකේ logout API එකට call කරන්න
+    // fetch('/api/logout', { method: 'POST' });
+
+    // Session/token clear කරන්න
+    localStorage.removeItem('token'); // ඔයාගේ auth token key එක දාන්න
+    sessionStorage.clear();
+
+    // Login page එකට redirect කරලා refresh කරන්න
+    window.location.href = '/login';
+  };
+
+  // User activity events monitor කරන්න
+  window.onload = resetTimer;
+  document.onmousemove = resetTimer;
+  document.onkeypress = resetTimer;
+  document.onclick = resetTimer;
+  document.onscroll = resetTimer;
+  document.addEventListener('touchstart', resetTimer);
+};
+
+inactivityTime();
+  </script>
+  
 </body>
 </html>
