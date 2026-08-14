@@ -736,7 +736,7 @@
 </script>
 
 <!-- =========================================================
-     FIREBASE AUTH + AUTO-LOGOUT (12 HOUR SESSION LIMIT)
+     FIREBASE AUTH + AUTO-LOGOUT (12 (recorded) HOUR SESSION LIMIT)
      ========================================================= -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -761,27 +761,42 @@
   const auth = getAuth(app);
 
   const LOGIN_PAGE = 'index_log.html';
-  const SESSION_LIMIT_MS = 12 * 60 * 60 * 1000; // 12 hours
+  const IDLE_LIMIT_MS = 1 * 60 * 1000; // 1 minute inactivity
 
-  function isSessionExpired(){
-    const loginTime = Number(localStorage.getItem('flp_loginTime'));
-    if(!loginTime) return false;
-    return (Date.now() - loginTime) > SESSION_LIMIT_MS;
-  }
+  let idleTimer = null;
 
-  async function forceExpireLogout(){
-    localStorage.removeItem('flp_loginTime');
+  async function forceIdleLogout(){
     try{ await signOut(auth); }catch(e){}
     window.location.href = LOGIN_PAGE + '?expired=1';
   }
 
-  onAuthStateChanged(auth, (user)=>{
-    if(user && isSessionExpired()) forceExpireLogout();
+  function resetIdleTimer(){
+    if(idleTimer) clearTimeout(idleTimer);
+    // only start counting if user is logged in
+    if(auth.currentUser){
+      idleTimer = setTimeout(forceIdleLogout, IDLE_LIMIT_MS);
+    }
+  }
+
+  // Activity events that count as "user is active"
+  const activityEvents = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+  activityEvents.forEach(evt => {
+    window.addEventListener(evt, resetIdleTimer, { passive: true });
   });
 
-  setInterval(()=>{
-    if(auth.currentUser && isSessionExpired()) forceExpireLogout();
-  }, 60 * 1000);
+  // Also reset when the tab becomes visible again
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible') resetIdleTimer();
+  });
+
+  onAuthStateChanged(auth, (user)=>{
+    if(user){
+      resetIdleTimer(); // start the idle clock once we know user is logged in
+    } else if(idleTimer){
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
+  });
 </script>
 
 </body>
