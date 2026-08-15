@@ -88,7 +88,9 @@ episodes.forEach((e, i) => {
 // =========================================================
 // JUMP TO A SPECIFIC EPISODE WHEN OPENED FROM HOME PAGE SEARCH
 // Home page search links here like:  index.html#ep=03
-// This scrolls to that episode's card and highlights it briefly.
+// This scrolls to that episode's card, adds a "🔎 Search Match"
+// badge, and dims every OTHER card so the matched one clearly
+// stands out from the rest of the grid.
 // =========================================================
 function jumpToEpisodeFromHash(){
   const match = window.location.hash.match(/ep=(\d+)/);
@@ -98,11 +100,31 @@ function jumpToEpisodeFromHash(){
   const targetCard = document.getElementById('ep-' + epNum);
   if (!targetCard) return;
 
-  // Wait a moment so the card's entrance animation has already run.
+  const allCards = Array.from(document.querySelectorAll('.card'));
+
+  // Wait a moment so the cards' entrance animation has already run.
   setTimeout(() => {
     targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     targetCard.classList.add('highlight');
-    setTimeout(() => targetCard.classList.remove('highlight'), 2600);
+
+    // Dim every other card so the matched one pops out visually.
+    allCards.forEach(c => {
+      if (c !== targetCard) c.classList.add('dimmed');
+    });
+
+    // Add a small "found via search" badge on top of the matched card.
+    const badge = document.createElement('div');
+    badge.className = 'match-badge';
+    badge.textContent = '🔎 Search Match';
+    targetCard.appendChild(badge);
+
+    // Let the user find it, then fade the whole effect back to normal.
+    setTimeout(() => {
+      targetCard.classList.remove('highlight');
+      allCards.forEach(c => c.classList.remove('dimmed'));
+      badge.classList.add('fade-out');
+      setTimeout(() => badge.remove(), 500);
+    }, 3800);
   }, 300);
 }
 
