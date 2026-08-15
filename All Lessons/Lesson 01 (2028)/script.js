@@ -40,6 +40,7 @@ function extractYouTubeId(input){
 episodes.forEach((e, i) => {
   const card = document.createElement('div');
   card.className = 'card';
+  card.id = 'ep-' + e.ep; // lets Home page search jump straight to this episode via #ep=01 etc.
   card.style.animationDelay = (i * 0.08) + 's';
 
   const videoId = extractYouTubeId(e.youtube);
@@ -89,3 +90,26 @@ episodes.forEach((e, i) => {
     goToYouTube();
   });
 });
+
+// =========================================================
+// JUMP TO A SPECIFIC EPISODE WHEN OPENED FROM HOME PAGE SEARCH
+// Home page search links here like:  index.html#ep=03
+// This scrolls to that episode's card and highlights it briefly.
+// =========================================================
+function jumpToEpisodeFromHash(){
+  const match = window.location.hash.match(/ep=(\d+)/);
+  if (!match) return;
+
+  const epNum = match[1].padStart(2, '0');
+  const targetCard = document.getElementById('ep-' + epNum);
+  if (!targetCard) return;
+
+  // Wait a moment so the card's entrance animation has already run.
+  setTimeout(() => {
+    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    targetCard.classList.add('highlight');
+    setTimeout(() => targetCard.classList.remove('highlight'), 2600);
+  }, 300);
+}
+
+window.addEventListener('load', jumpToEpisodeFromHash);
