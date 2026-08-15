@@ -737,27 +737,65 @@
 </script>
 
 <!-- =========================================================
-     EPISODE SEARCH INDEX
-     Add one object per video episode here. When you add a new
-     Lesson folder / new episodes to script.js, add matching
-     entries here too so they become searchable from Home.
-     "url" points to the lesson page + "#ep=XX" so clicking a
-     result jumps straight to that episode's card.
-     ========================================================= -->
+     EPISODE SEARCH INDEX — built AUTOMATICALLY.
+     Instead of a hand-copied array, this loads each lesson's
+     own "data.js" file (the SAME file that lesson's script.js
+     uses) and merges them into one searchable index.
+
+     TO ADD A NEW LESSON:
+       1. Create "All Lessons/Lesson 0X (2028)/data.js" for it
+          (copy the pattern from Lesson 01's data.js).
+       2. Add its folder path to LESSON_FOLDERS below. That's it —
+          you never need to touch the episode list here again.
+
+     TO EDIT AN EPISODE (title/tags/thumb/etc.):
+       Edit it ONLY inside that lesson's own data.js file.
+       This page will pick the change up automatically on reload.
+     ========================================================= */
+</script>
 <script>
-  const episodesIndex = [
-    { lesson:"Lesson 01", ep:"01", title:"P1 | Basic Concepts of ICT", unit:"UNIT 01 — BASIC CONCEPTS OF ICT", tags:"Data & Information | Data Processing | Classification Of Data & Information | Charcteristics Of Usefull Information", thumb:"All Lessons/Lesson 01 (2028)/thumbnails/lesson01-thumbnail1.png", url:"All Lessons/Lesson 01 (2028)/index.html#ep=01" },
-    { lesson:"Lesson 01", ep:"02", title:"P2 | Basic Concepts of ICT", unit:"UNIT 01 — BASIC CONCEPTS OF ICT", tags:"Golden Rule Of Information | Big Data | Life Cycle Of Data", thumb:"All Lessons/Lesson 01 (2028)/thumbnails/lesson01-thumbnail2.png", url:"All Lessons/Lesson 01 (2028)/index.html#ep=02" },
-    { lesson:"Lesson 01", ep:"03", title:"P3 | Basic Concepts of ICT", unit:"UNIT 01 — BASIC CONCEPTS OF ICT", tags:"Hardware Software Basics", thumb:"All Lessons/Lesson 01 (2028)/thumbnails/lesson01-thumbnail3.png", url:"All Lessons/Lesson 01 (2028)/index.html#ep=03" },
-    { lesson:"Lesson 01", ep:"04", title:"P4 | Basic Concepts of ICT", unit:"UNIT 01 — BASIC CONCEPTS OF ICT", tags:"Hardware Software Basics", thumb:"All Lessons/Lesson 01 (2028)/thumbnails/lesson01-thumbnail4.png", url:"All Lessons/Lesson 01 (2028)/index.html#ep=04" },
-    { lesson:"Lesson 01", ep:"05", title:"P5 | Basic Concepts of ICT", unit:"UNIT 01 — BASIC CONCEPTS OF ICT", tags:"Hardware Software Basics", thumb:"All Lessons/Lesson 01 (2028)/thumbnails/lesson01-thumbnail5.png", url:"All Lessons/Lesson 01 (2028)/index.html#ep=05" },
-    { lesson:"Lesson 01", ep:"06", title:"P6 | Basic Concepts of ICT", unit:"UNIT 01 — BASIC CONCEPTS OF ICT", tags:"Hardware Software Basics", thumb:"All Lessons/Lesson 01 (2028)/thumbnails/lesson01-thumbnail6.png", url:"All Lessons/Lesson 01 (2028)/index.html#ep=06" },
-    { lesson:"Lesson 01", ep:"07", title:"P7 | Basic Concepts of ICT", unit:"UNIT 01 — BASIC CONCEPTS OF ICT", tags:"Hardware Software Basics", thumb:"All Lessons/Lesson 01 (2028)/thumbnails/lesson01-thumbnail7C.png", url:"All Lessons/Lesson 01 (2028)/index.html#ep=07" },
-    { lesson:"Lesson 01", ep:"08", title:"P8 | Basic Concepts of ICT", unit:"UNIT 01 — BASIC CONCEPTS OF ICT", tags:"Hardware Software Basics", thumb:"All Lessons/Lesson 01 (2028)/thumbnails/lesson01-thumbnail8.png", url:"All Lessons/Lesson 01 (2028)/index.html#ep=08" },
-    { lesson:"Lesson 01", ep:"09", title:"P9 | Basic Concepts of ICT", unit:"UNIT 01 — BASIC CONCEPTS OF ICT", tags:"Hardware Software Basics", thumb:"All Lessons/Lesson 01 (2028)/thumbnails/lesson01-thumbnail7C.png", url:"All Lessons/Lesson 01 (2028)/index.html#ep=09" },
-    { lesson:"Lesson 01", ep:"10", title:"P10 | Basic Concepts of ICT", unit:"UNIT 01 — BASIC CONCEPTS OF ICT", tags:"Hardware Software Basics", thumb:"All Lessons/Lesson 01 (2028)/thumbnails/lesson01-thumbnail7C.png", url:"All Lessons/Lesson 01 (2028)/index.html#ep=10" }
-    // ---- Lesson 02 episodes: copy this pattern once Lesson 02's script.js has real episode data ----
+  const LESSON_FOLDERS = [
+    "All Lessons/Lesson 01 (2028)/",
+    "All Lessons/Lesson 02 (2028)/"
+    // add new lesson folder paths here as new lessons are created
   ];
+
+  let episodesIndex = [];
+
+  function loadLessonScript(src){
+    return new Promise((resolve)=>{
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = () => resolve(true);
+      s.onerror = () => resolve(false); // a lesson without data.js yet shouldn't break the page
+      document.head.appendChild(s);
+    });
+  }
+
+  async function buildEpisodeIndex(){
+    const collected = [];
+    for(const folder of LESSON_FOLDERS){
+      window.CURRENT_LESSON = null;
+      const ok = await loadLessonScript(folder + 'data.js');
+      if(ok && window.CURRENT_LESSON){
+        const ld = window.CURRENT_LESSON;
+        (ld.episodes || []).forEach(e=>{
+          collected.push({
+            lesson: ld.lesson,
+            ep: e.ep,
+            title: e.title,
+            unit: e.unit || ld.unit,
+            tags: e.tags,
+            thumb: folder + e.thumb,
+            url: folder + 'index.html#ep=' + e.ep
+          });
+        });
+      }
+    }
+    episodesIndex = collected;
+  }
+
+  buildEpisodeIndex();
 
   const searchResultsBox = document.getElementById('searchResults');
 
