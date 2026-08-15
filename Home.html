@@ -503,7 +503,7 @@
     <div class="video-grid">
 
       <a href="All Lessons/Lesson 01 (2028)/index.html">
-        <div class="video-card reveal">
+        <div class="video-card reveal" data-tags="unit 01 unit01 basic concepts of ict lesson 01">
           <div class="thumb">
             <img src="Lessons/lesson01.png" alt="Basic Concepts Of ICT" class="thumb-img">
             <span class="ep-tag">AL2028 | Lesson 01 |</span>
@@ -521,7 +521,7 @@
       </a>
 
       <a href="All Lessons/Lesson 02 (2028)/index.html">
-        <div class="video-card reveal">
+        <div class="video-card reveal" data-tags="unit 02 unit02 evolution of computing lesson 02">
           <div class="thumb">
             <img src="Lessons/lesson02.png" alt="Evolution Of Computing" class="thumb-img">
             <span class="ep-tag">AL2028 | Lesson 02 |</span>
@@ -678,15 +678,20 @@
 
     videoCards.forEach(card=>{
       const title = card.querySelector('.video-title')?.textContent.toLowerCase() || '';
+      const topic = card.querySelector('.video-topic')?.textContent.toLowerCase() || '';
+      const tags  = (card.getAttribute('data-tags') || '').toLowerCase();
+      const searchable = title + ' ' + topic + ' ' + tags;
       const link = card.closest('a');
-      const show = !q || title.includes(q);
+      const show = !q || searchable.includes(q);
       link.style.display = show ? '' : 'none';
     });
 
     noteRows.forEach(row=>{
       const title = row.querySelector('.note-title')?.textContent.toLowerCase() || '';
+      const sub   = row.querySelector('.note-sub')?.textContent.toLowerCase() || '';
+      const searchable = title + ' ' + sub;
       const link = row.closest('a');
-      const show = !q || title.includes(q);
+      const show = !q || searchable.includes(q);
       link.style.display = show ? '' : 'none';
     });
 
