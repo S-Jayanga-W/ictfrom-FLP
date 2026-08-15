@@ -11,6 +11,8 @@
 //   youtube: "dQw4w9WgXcQ"
 const episodes = [
   { ep:"01", unit:"UNIT 02 — Evolution Of Computing", title:"P1 | Evolution Of Computing ", tags:"· Data VS Information ", duration:"14:20", thumb:"thumbnails/lesson02-thumbnail1.png", youtube:"..............................................." },
+  { ep:"01", unit:"UNIT 02 — Evolution Of Computing", title:"P1 | Evolution Of Computing ", tags:"· Data  ", duration:"14:20", thumb:"thumbnails/lesson02-thumbnail1.png", youtube:"..............................................." },
+  { ep:"01", unit:"UNIT 02 — Evolution Of Computing", title:"P1 | Evolution Of Computing ", tags:"· Data VS Information ", duration:"14:20", thumb:"thumbnails/lesson02-thumbnail1.png", youtube:"..............................................." },
 
 
 
