@@ -19,9 +19,11 @@
 </main>
 <footer>©Ravindu Bandaranayake | H.M. Sithija Jayanga.W <br>
   මෙහි ඇතුළත් සියලුම Video පටයහි අයිතිය ictfromabc ආයතනයේ Ravidu Bandaranayake ගුරුතුමා සතුව පවතින බව දැනුම් දෙමි. මෙහි සම්පූර්ණ ගෞරවය Ravindu Bandaranayake සතුවේ. කව පංති සදහා සම්බන්ධ වීමට පිවිසෙන්න 071 455 5513 / [WWW.ictfromabc.com](https://WWW.ictfromabc.com)</footer>
-<!-- script must load AFTER the body so it can find #grid -->
+<!-- data.js MUST load before script.js — it defines window.CURRENT_LESSON,
+     which is the single source of truth for this lesson's episode list
+     (also used by Home.html's site-wide search). -->
+<script src="data.js"></script>
 <script src="script.js"></script>
-
 <!-- =========================================================
      FIREBASE AUTH + AUTO-LOGOUT (10 SECOND IDLE LIMIT)
      This file lives two folders deep (All Lessons/Lesson 01 (2028)/),
@@ -34,7 +36,6 @@
     onAuthStateChanged,
     signOut
   } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-
   const firebaseConfig = {
     apiKey: "AIzaSyCagFTgiAReVNf8PxNppg01URkQRPoNw3A",
     authDomain: "ictfrom-free-learn-pack.firebaseapp.com",
@@ -45,15 +46,11 @@
     appId: "1:621015284854:web:850148451720ff2529b357",
     measurementId: "G-7MPX23W72F"
   };
-
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-
   const LOGIN_PAGE = '../../index log.html'; // relative to this nested page
   const IDLE_LIMIT_MS = 10 * 1000; // 10 seconds inactivity
-
   let idleTimer = null;
-
   async function forceIdleLogout(){
     if(idleTimer){
       clearTimeout(idleTimer);
@@ -62,23 +59,19 @@
     try{ await signOut(auth); }catch(e){}
     window.location.href = LOGIN_PAGE + '?expired=1';
   }
-
   function resetIdleTimer(){
     if(idleTimer) clearTimeout(idleTimer);
     if(auth.currentUser){
       idleTimer = setTimeout(forceIdleLogout, IDLE_LIMIT_MS);
     }
   }
-
   const activityEvents = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
   activityEvents.forEach(evt => {
     window.addEventListener(evt, resetIdleTimer, { passive: true });
   });
-
   document.addEventListener('visibilitychange', () => {
     if(document.visibilityState === 'visible') resetIdleTimer();
   });
-
   onAuthStateChanged(auth, (user)=>{
     if(user){
       resetIdleTimer();
@@ -88,6 +81,5 @@
     }
   });
 </script>
-
 </body>
 </html>
