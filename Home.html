@@ -876,12 +876,27 @@
 
   let idleTimer = null;
 
+  // NOTE FOR DEBUGGING: Firebase Auth needs a real http/https origin to
+  // persist a login session (it stores the session in IndexedDB, which
+  // most browsers block or restrict on a file:// origin). If this page
+  // is opened by double-clicking the HTML file instead of via a local
+  // server or a hosted URL, auth.currentUser will silently stay null
+  // forever and the idle logout below will never fire — nothing is
+  // actually "broken", the browser is just refusing to store the login.
+  // Test this via a local server (e.g. VS Code "Live Server", or
+  // `python -m http.server`) or the real hosted site, not file://.
+  console.log('[idle-logout] Home.html auth script loaded. Page origin:', window.location.protocol);
+  if (window.location.protocol === 'file:') {
+    console.warn('[idle-logout] This page is running on file:// — Firebase Auth session persistence is usually blocked here, so the idle logout will not trigger. Serve this page over http/https instead (Live Server, a local http server, or GitHub Pages) to test it.');
+  }
+
   async function forceIdleLogout(){
+    console.log('[idle-logout] 10s of inactivity reached — signing out and redirecting.');
     if(idleTimer){
       clearTimeout(idleTimer);
       idleTimer = null;
     }
-    try{ await signOut(auth); }catch(e){}
+    try{ await signOut(auth); }catch(e){ console.error('[idle-logout] signOut failed:', e); }
     window.location.href = LOGIN_PAGE + '?expired=1';
   }
 
@@ -903,10 +918,14 @@
 
   onAuthStateChanged(auth, (user)=>{
     if(user){
+      console.log('[idle-logout] Signed-in user detected:', user.email || user.uid, '— idle timer armed.');
       resetIdleTimer();
-    } else if(idleTimer){
-      clearTimeout(idleTimer);
-      idleTimer = null;
+    } else {
+      console.log('[idle-logout] No signed-in user — idle timer will not run.');
+      if(idleTimer){
+        clearTimeout(idleTimer);
+        idleTimer = null;
+      }
     }
   });
 </script>
