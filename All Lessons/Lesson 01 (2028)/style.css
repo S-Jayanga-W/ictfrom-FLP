@@ -261,3 +261,63 @@ footer{
 @media (prefers-reduced-motion: reduce){
   *{ animation: none !important; transition:none !important; }
 }
+
+/* ---------------------------------------------------------
+   SEARCH-RESULT HIGHLIGHT
+   Added to a card briefly (via script.js) when the user
+   arrives here from a Home-page search result click, so the
+   matched episode is obviously flagged after the auto-scroll.
+   The rest of the grid dims at the same time so the matched
+   card visually pops out from every other video.
+   --------------------------------------------------------- */
+.card.highlight{
+  animation: highlightPulse 3.8s ease;
+  transform: scale(1.035);
+  z-index: 5;
+  border-color: var(--red) !important;
+  box-shadow: 0 0 0 3px var(--red), 0 22px 50px -18px var(--red-glow) !important;
+}
+@keyframes highlightPulse{
+  0%{ box-shadow: 0 0 0 3px var(--red), 0 0 0 0 var(--red-glow); }
+  20%{ box-shadow: 0 0 0 3px var(--red), 0 0 0 14px rgba(226,38,31,0.25); }
+  60%{ box-shadow: 0 0 0 3px var(--red), 0 0 0 14px rgba(226,38,31,0.25); }
+  100%{ box-shadow: 0 0 0 3px var(--red), 0 0 0 0 rgba(226,38,31,0); }
+}
+
+/* Every card that ISN'T the search match fades back and dims,
+   pushing focus toward the highlighted one. */
+.card.dimmed{
+  opacity: 0.32;
+  filter: grayscale(0.4);
+  transform: scale(0.98);
+  transition: opacity .5s ease, filter .5s ease, transform .5s ease;
+}
+.card:not(.dimmed){
+  transition: opacity .5s ease, filter .5s ease, transform .3s ease;
+}
+
+/* "🔎 Search Match" badge stamped on the matched card */
+.match-badge{
+  position:absolute;
+  top:16px; right:16px; z-index:6;
+  background: var(--red);
+  color:#0a0908;
+  font-family: var(--mono);
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:1px;
+  padding: 6px 11px;
+  border-radius: 20px;
+  box-shadow: 0 6px 18px -4px var(--red-glow);
+  animation: badgeIn .35s cubic-bezier(.2,.8,.3,1.2);
+}
+.match-badge.fade-out{
+  animation: badgeOut .5s ease forwards;
+}
+@keyframes badgeIn{
+  from{ opacity:0; transform: translateY(-8px) scale(.8); }
+  to{ opacity:1; transform: translateY(0) scale(1); }
+}
+@keyframes badgeOut{
+  to{ opacity:0; transform: translateY(-6px) scale(.85); }
+}
