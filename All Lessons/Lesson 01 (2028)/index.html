@@ -1,23 +1,14 @@
 <!DOCTYPE html>
 <html lang="si">
   <head>
-    <link rel="icon" type="image/png" href="logo.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ictfrom | Free Learn Pack (FLP)</title>
-    <!-- Favicon -->
-     
-</head>
-  
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lesson 01 | Basic Concepts Of ICT</title>
-<link rel="stylesheet" href="style.css">
+    <title>Lesson 01 | Basic Concepts Of ICT</title>
+    <link rel="icon" type="image/png" href="../../logo.png">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="noise-layer"></div>
-<footer>©Ravindu Bandaranayake | H.M. Sithija Jayanga.W </footer>
 <header>
   <div class="eyebrow"><span class="dot"></span>REC · 10 EPISODES LOADED</div>
   <h1>01.Basic Concepts Of ICT <br><span>| @Ravindu Bandaranayake</span></h1>
@@ -32,7 +23,9 @@
 <script src="script.js"></script>
 
 <!-- =========================================================
-     FIREBASE AUTH + AUTO-LOGOUT (12 HOUR SESSION LIMIT)
+     FIREBASE AUTH + AUTO-LOGOUT (10 SECOND IDLE LIMIT)
+     This file lives two folders deep (All Lessons/Lesson 01 (2028)/),
+     so the login page path uses ../../ to reach the site root.
      ========================================================= -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -56,64 +49,45 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
-  const LOGIN_PAGE = 'index_log.html';
-  const SESSION_LIMIT_MS = 12 * 60 * 60 * 1000; // 12 hours
+  const LOGIN_PAGE = '../../index log.html'; // relative to this nested page
+  const IDLE_LIMIT_MS = 10 * 1000; // 10 seconds inactivity
 
-  function isSessionExpired(){
-    const loginTime = Number(localStorage.getItem('flp_loginTime'));
-    if(!loginTime) return false;
-    return (Date.now() - loginTime) > SESSION_LIMIT_MS;
-  }
+  let idleTimer = null;
 
-  async function forceExpireLogout(){
-    localStorage.removeItem('flp_loginTime');
+  async function forceIdleLogout(){
+    if(idleTimer){
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
     try{ await signOut(auth); }catch(e){}
     window.location.href = LOGIN_PAGE + '?expired=1';
   }
 
-  onAuthStateChanged(auth, (user)=>{
-    if(user && isSessionExpired()) forceExpireLogout();
+  function resetIdleTimer(){
+    if(idleTimer) clearTimeout(idleTimer);
+    if(auth.currentUser){
+      idleTimer = setTimeout(forceIdleLogout, IDLE_LIMIT_MS);
+    }
+  }
+
+  const activityEvents = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+  activityEvents.forEach(evt => {
+    window.addEventListener(evt, resetIdleTimer, { passive: true });
   });
 
-  setInterval(()=>{
-    if(auth.currentUser && isSessionExpired()) forceExpireLogout();
-  }, 60 * 1000);
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible') resetIdleTimer();
+  });
+
+  onAuthStateChanged(auth, (user)=>{
+    if(user){
+      resetIdleTimer();
+    } else if(idleTimer){
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
+  });
 </script>
 
-   <script src="inactivity.js">
-    let inactivityTime = function () {
-  let timer;
-
-  // Timer එක reset කරලා අලුතෙන් ආරම්භ කරන function එක
-  const resetTimer = () => {
-    clearTimeout(timer);
-    timer = setTimeout(logoutUser, 60 * 1000); // 1 minute = 60000ms
-  };
-
-  // Logout කරන function එක
-  const logoutUser = () => {
-    // ඔයාගේ backend එකේ logout API එකට call කරන්න
-    // fetch('/api/logout', { method: 'POST' });
-
-    // Session/token clear කරන්න
-    localStorage.removeItem('token'); // ඔයාගේ auth token key එක දාන්න
-    sessionStorage.clear();
-
-    // Login page එකට redirect කරලා refresh කරන්න
-    window.location.href = '/login';
-  };
-
-  // User activity events monitor කරන්න
-  window.onload = resetTimer;
-  document.onmousemove = resetTimer;
-  document.onkeypress = resetTimer;
-  document.onclick = resetTimer;
-  document.onscroll = resetTimer;
-  document.addEventListener('touchstart', resetTimer);
-};
-
-inactivityTime();
-  </script>
-  
 </body>
 </html>
