@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin | ictfrom | Free Learn Pack (FLP)</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root{
+    --black:#0a0a0a;
+    --panel:#141110;
+    --line:#2a2422;
+    --red:#e5121a;
+    --red-dim:#7a0c11;
+    --white:#f5f5f5;
+    --grey:#8a8a8a;
+    --green:#2ecc71;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Consolas','Courier New',monospace;
+    background:var(--black);
+    color:var(--white);
+    min-height:100vh;
+  }
+  a{ color:inherit; }
+
+  /* ---------- gate screens ---------- */
+  #gate{
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:14px; text-align:center; padding:20px;
+    background:var(--black); z-index:50;
+  }
+  #gate.hidden{ display:none; }
+  #gate h1{ font-size:22px; color:var(--red); letter-spacing:1px; }
+  #gate p{ color:var(--grey); max-width:420px; }
+
+  /* ---------- top bar ---------- */
+  header.topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 24px; border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:rgba(10,10,10,.92); backdrop-filter:blur(6px); z-index:10;
+  }
+  header.topbar .brand{ display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:1px; }
+  header.topbar .brand img{ width:30px; height:30px; border-radius:6px; }
+  header.topbar .brand span{ color:var(--red); }
+  header.topbar nav a{
+    text-decoration:none; color:var(--grey); font-size:13px; margin-left:18px;
+    border:1px solid var(--line); padding:8px 14px; border-radius:6px; transition:.2s;
+  }
+  header.topbar nav a:hover{ border-color:var(--red); color:var(--white); }
+
+  #app{ display:none; }
+  #app.ready{ display:block; }
+
+  .layout{
+    display:grid; grid-template-columns: 340px 1fr; gap:0; min-height:calc(100vh - 65px);
+  }
+  @media (max-width: 900px){ .layout{ grid-template-columns: 1fr; } }
+
+  /* ---------- student list column ---------- */
+  .students-col{
+    border-right:1px solid var(--line); padding:18px; overflow-y:auto; max-height:calc(100vh - 65px);
+  }
+  .students-col h2{ font-size:13px; letter-spacing:2px; color:var(--grey); margin-bottom:12px; text-transform:uppercase; }
+  #searchBox{
+    width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line);
+    background:var(--panel); color:var(--white); font-family:inherit; font-size:13px; margin-bottom:14px;
+  }
+  #searchBox:focus{ outline:none; border-color:var(--red); }
+  .student-item{
+    padding:10px 12px; border-radius:8px; cursor:pointer; margin-bottom:6px;
+    border:1px solid transparent; transition:.15s;
+  }
+  .student-item:hover{ background:var(--panel); }
+  .student-item.active{ border-color:var(--red); background:rgba(229,18,26,.08); }
+  .student-item .s-name{ font-weight:700; font-size:14px; }
+  .student-item .s-email{ font-size:11px; color:var(--grey); }
+  #studentCount{ color:var(--grey); font-size:11px; margin-bottom:10px; }
+
+  /* ---------- detail column ---------- */
+  .detail-col{ padding:24px; overflow-y:auto; max-height:calc(100vh - 65px); }
+  .empty-state{ color:var(--grey); text-align:center; margin-top:80px; font-size:14px; }
+
+  .student-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:18px 20px; margin-bottom:22px;
+  }
+  .student-card h3{ font-size:18px; margin-bottom:6px; }
+  .student-card .grid-info{
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:8px; margin-top:10px;
+    font-size:12px; color:var(--grey);
+  }
+  .student-card .grid-info b{ color:var(--white); font-weight:600; }
+
+  .lesson-block{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:16px 18px; margin-bottom:16px;
+  }
+  .lesson-block .lesson-head{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
+  }
+  .lesson-block .lesson-head h4{ font-size:15px; letter-spacing:.5px; }
+  .lesson-block .lesson-head .sub{ font-size:11px; color:var(--grey); }
+
+  .switch{ position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{
+    position:absolute; cursor:pointer; inset:0; background:#3a3230; border-radius:24px; transition:.2s;
+  }
+  .slider:before{
+    content:""; position:absolute; height:18px; width:18px; left:3px; bottom:3px;
+    background:#fff; border-radius:50%; transition:.2s;
+  }
+  .switch input:checked + .slider{ background:var(--red); }
+  .switch input:checked + .slider:before{ transform:translateX(20px); }
+
+  .full-toggle-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 0; border-bottom:1px dashed var(--line); margin-bottom:10px;
+  }
+  .full-toggle-row .label{ font-size:13px; }
+  .full-toggle-row .label small{ display:block; color:var(--grey); font-size:11px; margin-top:2px; }
+
+  .ep-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:8px 0; font-size:13px;
+  }
+  .ep-row .ep-title{ display:flex; flex-direction:column; }
+  .ep-row .ep-title span.tag{ color:var(--red); font-size:11px; font-weight:700; letter-spacing:1px; }
+  .ep-row .ep-title span.name{ color:var(--white); }
+
+  /* ---------- video link manager ---------- */
+  .video-manager summary{
+    cursor:pointer; font-size:13px; letter-spacing:1px; color:var(--grey); padding:10px 0;
+  }
+  .video-manager summary:hover{ color:var(--white); }
+  .vid-row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  .vid-row .tag{ width:44px; flex-shrink:0; color:var(--red); font-size:12px; font-weight:700; }
+  .vid-row input{
+    flex:1; padding:8px 10px; border-radius:6px; border:1px solid var(--line);
+    background:#0d0b0a; color:var(--white); font-family:inherit; font-size:12px;
+  }
+  .vid-row input:focus{ outline:none; border-color:var(--red); }
+  .vid-row button{
+    padding:8px 12px; border-radius:6px; border:none; background:var(--red); color:#fff;
+    font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; transition:.15s;
+  }
+  .vid-row button:hover{ background:#c40e15; }
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--panel); border:1px solid var(--line); color:var(--white);
+    padding:10px 18px; border-radius:8px; font-size:13px; opacity:0; pointer-events:none;
+    transition:.25s; z-index:100;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast.ok{ border-color:var(--green); }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <h1>🔒 CHECKING ACCESS…</h1>
+  <p>Verifying admin permissions, please wait.</p>
+</div>
+
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><img src="logo.png" alt=""> ictfrom | <span>ADMIN</span></div>
+    <nav>
+      <a href="Home.html">← Site</a>
+      <a href="#" id="logoutLink">Logout</a>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <div class="students-col">
+      <h2>Students</h2>
+      <input id="searchBox" type="text" placeholder="Search name / email / phone…">
+      <div id="studentCount"></div>
+      <div id="studentList"></div>
+    </div>
+
+    <div class="detail-col">
+      <div id="emptyState" class="empty-state">← Select a student to manage their lesson access.</div>
+      <div id="detailWrap" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>window.SITE_ROOT = '';</script>
+<script type="module" src="assets/access-control.js"></script>
+
+<script type="module">
+  import { ref, get, set, remove } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+
+  const gate = document.getElementById('gate');
+  const app = document.getElementById('app');
+  const toastEl = document.getElementById('toast');
+
+  function showToast(msg, ok){
+    toastEl.textContent = msg;
+    toastEl.className = 'toast show' + (ok ? ' ok' : '');
+    setTimeout(()=>{ toastEl.className = 'toast'; }, 2200);
+  }
+
+  // =========================================================
+  // GATE: only admins get past this point.
+  // =========================================================
+  const { user, isAdmin } = await window.FLP.ready;
+  if (!user) {
+    // access-control.js already redirects to login; nothing more to do.
+  } else if (!isAdmin) {
+    gate.innerHTML = `
+      <h1>🚫 ACCESS DENIED</h1>
+      <p>This page is for admins only. If you believe this is a mistake, contact the site owner.
+      Redirecting you back to the site…</p>`;
+    setTimeout(()=>{ window.location.href = 'Home.html'; }, 2500);
+  } else {
+    gate.classList.add('hidden');
+    app.classList.add('ready');
+    initAdmin();
+  }
+
+  document.getElementById('logoutLink').addEventListener('click', (e)=>{
+    e.preventDefault();
+    window.FLP.logout();
+  });
+
+  const db = window.FLP.db;
+
+  // =========================================================
+  // LOAD LESSON CONFIG (ep list + titles) — reuses each lesson's
+  // OWN data.js as the single source of truth, same trick Home.html
+  // uses for its search index. No video URLs are in data.js anymore,
+  // so this is completely safe to load for the UI.
+  // =========================================================
+  const LESSON_FOLDERS = [
+    "All Lessons/Lesson 01 (2028)/",
+    "All Lessons/Lesson 02 (2028)/"
+    // add new lesson folder paths here as new lessons are created
+  ];
+
+  function loadLessonScript(src){
+    return new Promise((resolve)=>{
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = () => resolve(true);
+      s.onerror = () => resolve(false);
+      document.head.appendChild(s);
+    });
+  }
+
+  async function loadLessons(){
+    const lessons = [];
+    for (const folder of LESSON_FOLDERS){
+      window.CURRENT_LESSON = null;
+      const ok = await loadLessonScript(folder + 'data.js');
+      if (ok && window.CURRENT_LESSON){
+        lessons.push(window.CURRENT_LESSON);
+      }
+    }
+    return lessons;
+  }
+
+  let LESSONS = [];
+  let USERS = {}; // uid -> profile
+  let selectedUid = null;
+
+  async function initAdmin(){
+    LESSONS = await loadLessons();
+
+    const usersSnap = await get(ref(db, 'users'));
+    USERS = usersSnap.exists() ? usersSnap.val() : {};
+
+    renderStudentList('');
+
+    document.getElementById('searchBox').addEventListener('input', (e)=>{
+      renderStudentList(e.target.value.trim().toLowerCase());
+    });
+  }
+
+  function renderStudentList(query){
+    const list = document.getElementById('studentList');
+    const entries = Object.entries(USERS).filter(([uid, u]) => {
+      if (!query) return true;
+      const hay = `${u.name||''} ${u.email||''} ${u.phone||''} ${u.school||''}`.toLowerCase();
+      return hay.includes(query);
+    });
+
+    document.getElementById('studentCount').textContent = entries.length + ' student(s)';
+
+    if (entries.length === 0){
+      list.innerHTML = '<div class="empty-state" style="margin-top:20px;">No matching students.</div>';
+      return;
+    }
+
+    list.innerHTML = entries.map(([uid, u]) => `
+      <div class="student-item ${uid === selectedUid ? 'active' : ''}" data-uid="${uid}">
+        <div class="s-name">${escapeHtml(u.name || '(no name)')}</div>
+        <div class="s-email">${escapeHtml(u.email || '')}</div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.student-item').forEach(el => {
+      el.addEventListener('click', () => {
+        selectedUid = el.getAttribute('data-uid');
+        renderStudentList(document.getElementById('searchBox').value.trim().toLowerCase());
+        renderDetail(selectedUid);
+      });
+    });
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function renderDetail(uid){
+    const u = USERS[uid] || {};
+    document.getElementById('emptyState').style.display = 'none';
+    const wrap = document.getElementById('detailWrap');
+    wrap.style.display = 'block';
+    wrap.innerHTML = '<div class="empty-state">Loading access data…</div>';
+
+    const accessSnap = await get(ref(db, 'access/' + uid));
+    const access = accessSnap.exists() ? accessSnap.val() : {};
+
+    let html = `
+      <div class="student-card">
+        <h3>${escapeHtml(u.name || '(no name)')}</h3>
+        <div class="grid-info">
+          <div><b>Email:</b> ${escapeHtml(u.email || '-')}</div>
+          <div><b>Phone:</b> ${escapeHtml(u.phone || '-')}</div>
+          <div><b>School:</b> ${escapeHtml(u.school || '-')}</div>
+          <div><b>A/L Batch:</b> ${escapeHtml(u.alBatch || '-')}</div>
+          <div><b>Address:</b> ${escapeHtml(u.address || '-')}</div>
+        </div>
+      </div>
+    `;
+
+    for (const lesson of LESSONS){
+      const lessonId = lesson.lessonId;
+      const lessonAccess = access[lessonId] || {};
+      const isFull = !!lessonAccess.full;
+      const epAccess = lessonAccess.episodes || {};
+
+      html += `
+        <div class="lesson-block" data-lesson="${lessonId}">
+          <div class="lesson-head">
+            <div>
+              <h4>${escapeHtml(lesson.lesson)}</h4>
+              <div class="sub">${escapeHtml(lesson.unit || '')}</div>
+            </div>
+          </div>
+
+          <div class="full-toggle-row">
+            <div class="label">Unlock whole lesson
+              <small>Turns ON every episode below for this student.</small>
+            </div>
+            <label class="switch">
+              <input type="checkbox" class="full-toggle" ${isFull ? 'checked' : ''} data-uid="${uid}" data-lesson="${lessonId}">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          ${lesson.episodes.map(e => `
+            <div class="ep-row">
+              <div class="ep-title">
+                <span class="tag">EP ${e.ep}</span>
+                <span class="name">${escapeHtml(e.title)}</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" class="ep-toggle" ${epAccess[e.ep] ? 'checked' : ''}
+                  data-uid="${uid}" data-lesson="${lessonId}" data-ep="${e.ep}">
+                <span class="slider"></span>
+              </label>
+            </div>
+          `).join('')}
+
+          <details class="video-manager">
+            <summary>⚙ Manage YouTube links for ${escapeHtml(lesson.lesson)}</summary>
+            <div class="video-rows" data-lesson="${lessonId}">Loading…</div>
+          </details>
+        </div>
+      `;
+    }
+
+    wrap.innerHTML = html;
+    wireDetailEvents();
+    LESSONS.forEach(lesson => loadVideoRows(lesson));
+  }
+
+  function wireDetailEvents(){
+    document.querySelectorAll('.full-toggle').forEach(el => {
+      el.addEventListener('change', async () => {
+        const { uid, lesson } = el.dataset;
+        try{
+          await set(ref(db, `access/${uid}/${lesson}/full`), el.checked);
+          showToast(`${lesson} — full unlock ${el.checked ? 'ON' : 'OFF'} ✓`, true);
+        }catch(e){
+          showToast('Failed to save: ' + e.message, false);
+          el.checked = !el.checked;
+        }
+      });
+    });
+
+    document.querySelectorAll('.ep-toggle').forEach(el => {
+      el.addEventListener('change', async () => {
+        const { uid, lesson, ep } = el.dataset;
+        try{
+          if (el.checked){
+            await set(ref(db, `access/${uid}/${lesson}/episodes/${ep}`), true);
+          } else {
+            await remove(ref(db, `access/${uid}/${lesson}/episodes/${ep}`));
+          }
+          showToast(`${lesson} EP${ep} ${el.checked ? 'unlocked' : 'locked'} ✓`, true);
+        }catch(e){
+          showToast('Failed to save: ' + e.message, false);
+          el.checked = !el.checked;
+        }
+      });
+    });
+  }
+
+  async function loadVideoRows(lesson){
+    const container = document.querySelector(`.video-rows[data-lesson="${lesson.lessonId}"]`);
+    if (!container) return;
+
+    const rows = await Promise.all(lesson.episodes.map(async (e) => {
+      let current = '';
+      try{
+        const snap = await get(ref(db, `lessonVideos/${lesson.lessonId}/${e.ep}`));
+        current = snap.exists() ? snap.val() : '';
+      }catch(err){ current = ''; }
+      return { ep: e.ep, title: e.title, current };
+    }));
+
+    container.innerHTML = rows.map(r => `
+      <div class="vid-row" data-ep="${r.ep}">
+        <span class="tag">EP${r.ep}</span>
+        <input type="text" value="${escapeHtml(r.current)}" placeholder="Paste YouTube URL for ${escapeHtml(r.title)}">
+        <button type="button">Save</button>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.vid-row').forEach(row => {
+      const ep = row.dataset.ep;
+      const input = row.querySelector('input');
+      const btn = row.querySelector('button');
+      btn.addEventListener('click', async () => {
+        const val = input.value.trim();
+        try{
+          if (val){
+            await set(ref(db, `lessonVideos/${lesson.lessonId}/${ep}`), val);
+          } else {
+            await remove(ref(db, `lessonVideos/${lesson.lessonId}/${ep}`));
+          }
+          showToast(`Video link saved for ${lesson.lesson} EP${ep} ✓`, true);
+        }catch(e){
+          showToast('Failed to save link: ' + e.message, false);
+        }
+      });
+    });
+  }
+</script>
+</body>
+</html>
