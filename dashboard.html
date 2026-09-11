@@ -177,8 +177,13 @@
     <span class="tag">ACCESS GRANTED</span>
     <h1>Welcome, <span id="userName">User</span></h1>
     <p>You have successfully logged in to the ictfrom | Free Learn Pack (FLP).</p>
-    <a href="Home.html" class="btn btn-primary">Start Learn</a>
-    <button href="index log.html" class="btn btn-secondary">Logout</button>
+    <!-- CHANGED: now goes to lessons.html (the lock/unlock gate) instead of
+         straight to Home.html, so paid lessons are actually protected. -->
+    <a href="lessons.html" class="btn btn-primary">Start Learn</a>
+    <!-- FIXED: this was <button href="..."> which does nothing (buttons don't
+         support href) and had no id, so the old logoutBtn script below never
+         found it. Now it has id="logoutBtn" so the existing script works. -->
+    <button id="logoutBtn" class="btn btn-secondary">Logout</button>
   </div>
 </div>
 
@@ -209,7 +214,10 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getDatabase(app);
-  const LOGIN_PAGE = 'index.html'; // <-- our login/register page
+  // FIXED: this must exactly match your real login file's name
+  // ("index log.html", with a space) — it was "index.html" before,
+  // which does not exist in your repo.
+  const LOGIN_PAGE = 'index log.html';
 
   onAuthStateChanged(auth, async (user) => {
     if(!user){
