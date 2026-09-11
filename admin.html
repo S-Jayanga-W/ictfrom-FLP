@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin | ictfrom FLP</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#0a0a0a; --panel:#141414; --panel-2:#1b1b1b; --line:rgba(255,255,255,.09); --text:#f5f5f5; --muted:#8f8f8f; --red:#e5121a; --red-dim:rgba(229,18,26,.14); }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+  .wrap{max-width:1100px;margin:0 auto;padding:40px 24px;}
+  h1{font-family:'Space Grotesk',sans-serif;font-size:24px;margin-bottom:4px;}
+  p.sub{color:var(--muted);font-size:13px;margin-bottom:30px;}
+
+  /* --- login gate --- */
+  .gate{max-width:380px;margin:80px auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:36px;}
+  .gate h2{font-family:'Space Grotesk',sans-serif;font-size:20px;margin-bottom:20px;}
+  .gate input{width:100%;background:#1b1b1b;border:1px solid var(--line);color:var(--text);padding:11px 14px;border-radius:8px;font-size:14px;margin-bottom:12px;outline:none;}
+  .gate button{width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;}
+  #gateMsg{color:var(--red);font-size:12.5px;margin-top:10px;text-align:center;min-height:16px;}
+
+  /* --- student table --- */
+  #panel{display:none;}
+  .search-row{margin-bottom:18px;}
+  .search-row input{width:100%;max-width:340px;background:var(--panel);border:1px solid var(--line);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13.5px;outline:none;}
+  .search-row input:focus{border-color:var(--red);}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  th, td{padding:14px 16px;text-align:left;font-size:13.5px;border-bottom:1px solid var(--line);}
+  th{background:var(--panel-2);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;}
+  tr:last-child td{border-bottom:none;}
+  .lesson-toggles{display:flex;flex-wrap:wrap;gap:8px;}
+  .toggle-btn{font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 12px;border-radius:20px;border:1px solid var(--line);cursor:pointer;background:transparent;color:var(--muted);transition:.2s;}
+  .toggle-btn.on{background:rgba(61,220,132,.14);border-color:#3ddc84;color:#3ddc84;}
+  .toggle-btn.off{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+  #adminLogout{background:none;border:1px solid var(--line);color:var(--muted);padding:8px 16px;border-radius:6px;font-size:12.5px;cursor:pointer;float:right;}
+  #loadingStudents{color:var(--muted);padding:20px 0;}
+  .name-cell{font-weight:600;}
+  .sub-cell{color:var(--muted);font-size:11.5px;margin-top:2px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN GATE: only shown until an admin logs in -->
+<div class="gate" id="gate">
+  <h2>Admin Login</h2>
+  <input type="email" id="adminEmail" placeholder="Admin email">
+  <input type="password" id="adminPassword" placeholder="Password">
+  <button id="adminLoginBtn">Login</button>
+  <div id="gateMsg"></div>
+</div>
+
+<!-- ADMIN PANEL: only shown after the UID check passes -->
+<div class="wrap" id="panel">
+  <button id="adminLogout">Log out</button>
+  <h1>Student Management</h1>
+  <p class="sub">Tap a lesson badge to unlock / lock it for that student.</p>
+  <div class="search-row">
+    <input type="text" id="searchBox" placeholder="Search by name, email or phone...">
+  </div>
+  <div id="loadingStudents">Loading students...</div>
+  <table id="studentTable" style="display:none;">
+    <thead>
+      <tr><th>Student</th><th>Phone</th><th>School / Batch</th><th>Lessons</th></tr>
+    </thead>
+    <tbody id="studentBody"></tbody>
+  </table>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import {
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut
+  } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+  import {
+    getDatabase, ref, onValue, set, remove
+  } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCagFTgiAReVNf8PxNppg01URkQRPoNw3A",
+    authDomain: "ictfrom-free-learn-pack.firebaseapp.com",
+    databaseURL: "https://ictfrom-free-learn-pack-default-rtdb.firebaseio.com",
+    projectId: "ictfrom-free-learn-pack",
+    storageBucket: "ictfrom-free-learn-pack.firebasestorage.app",
+    messagingSenderId: "621015284854",
+    appId: "1:621015284854:web:850148451720ff2529b357",
+    measurementId: "G-7MPX23W72F"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  // Your admin account's UID (Firebase Console -> Authentication -> Users)
+  const ADMIN_UID = "oNftxzL7oJMYBf4bzEZgBMBZqKx2";
+
+  // Same lesson catalog as lessons.html — keep the "id" values in sync.
+  const LESSONS = [
+    { id: "lesson01", label: "Lesson 01" },
+    { id: "lesson02", label: "Lesson 02" }
+    // add more lessons here as you create them
+  ];
+
+  const gate = document.getElementById('gate');
+  const panel = document.getElementById('panel');
+  const gateMsg = document.getElementById('gateMsg');
+
+  document.getElementById('adminLoginBtn').addEventListener('click', async () => {
+    const email = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value;
+    gateMsg.textContent = '';
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      gateMsg.textContent = 'Login failed. Check email/password.';
+    }
+  });
+
+  document.getElementById('adminLogout').addEventListener('click', async () => {
+    await signOut(auth);
+    window.location.reload();
+  });
+
+  let allStudents = []; // cached for search filtering
+
+  onAuthStateChanged(auth, (user) => {
+    if (user && user.uid === ADMIN_UID) {
+      gate.style.display = 'none';
+      panel.style.display = 'block';
+      loadStudents();
+    } else {
+      panel.style.display = 'none';
+      gate.style.display = 'block';
+      if (user && user.uid !== ADMIN_UID) {
+        gateMsg.textContent = 'This account is not an admin.';
+        signOut(auth);
+      }
+    }
+  });
+
+  function loadStudents() {
+    const loading = document.getElementById('loadingStudents');
+    const table = document.getElementById('studentTable');
+
+    // Live-listen to the whole users list
+    onValue(ref(db, 'users'), (usersSnap) => {
+      const usersData = usersSnap.exists() ? usersSnap.val() : {};
+
+      // Live-listen to the whole unlocked map (nested under each uid)
+      onValue(ref(db, 'unlocked'), (unlockedSnap) => {
+        const unlockedData = unlockedSnap.exists() ? unlockedSnap.val() : {};
+
+        allStudents = Object.keys(usersData).map(uid => ({
+          uid,
+          ...usersData[uid],
+          unlocked: unlockedData[uid] || {}
+        }));
+
+        loading.style.display = 'none';
+        table.style.display = 'table';
+        renderTable(allStudents);
+      });
+    });
+  }
+
+  function renderTable(students) {
+    const tbody = document.getElementById('studentBody');
+    tbody.innerHTML = '';
+
+    students.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="name-cell">${s.name || '—'}</div>
+          <div class="sub-cell">${s.email || ''}</div>
+        </td>
+        <td>${s.phone || '—'}</td>
+        <td>
+          <div>${s.school || '—'}</div>
+          <div class="sub-cell">${s.alBatch || ''}</div>
+        </td>
+        <td><div class="lesson-toggles" data-uid="${s.uid}"></div></td>
+      `;
+      tbody.appendChild(tr);
+
+      const toggleRow = tr.querySelector('.lesson-toggles');
+      LESSONS.forEach(lesson => {
+        const isOn = !!s.unlocked[lesson.id];
+        const btn = document.createElement('button');
+        btn.className = 'toggle-btn ' + (isOn ? 'on' : 'off');
+        btn.textContent = (isOn ? '✓ ' : '') + lesson.label;
+        btn.addEventListener('click', () => toggleLesson(s.uid, lesson.id, isOn));
+        toggleRow.appendChild(btn);
+      });
+    });
+  }
+
+  async function toggleLesson(studentUid, lessonId, currentlyOn) {
+    // unlocked/{uid}/{lessonId} = true  -> unlocked
+    // key removed entirely           -> locked
+    const unlockRef = ref(db, 'unlocked/' + studentUid + '/' + lessonId);
+    try {
+      if (currentlyOn) {
+        await remove(unlockRef);
+      } else {
+        await set(unlockRef, true);
+      }
+      // onValue listener above auto-refreshes the table
+    } catch (err) {
+      alert('Failed to update: ' + err.message);
+    }
+  }
+
+  // ---- simple search filter over name/email/phone ----
+  document.getElementById('searchBox').addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    if (!q) { renderTable(allStudents); return; }
+    const filtered = allStudents.filter(s =>
+      (s.name || '').toLowerCase().includes(q) ||
+      (s.email || '').toLowerCase().includes(q) ||
+      (s.phone || '').toLowerCase().includes(q)
+    );
+    renderTable(filtered);
+  });
+</script>
+
+</body>
+</html>
