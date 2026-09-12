@@ -1,3 +1,4 @@
+```javascript
 // =========================================================
 // ictfrom | FLP — SHARED ACCESS CONTROL MODULE
 // =========================================================
@@ -9,26 +10,42 @@
 //   - YouTube video URL access
 //   - Student idle auto-logout
 //
-// IMPORTANT:
-//   - STUDENT pages  -> auto logout after 10 seconds
-//   - ADMIN page     -> NEVER auto logout
-//                       (manual Logout only)
+// =========================================================
+// AUTO LOGOUT RULES
+// =========================================================
+//
+// STUDENT PAGES:
+//   10 seconds without activity
+//              ↓
+//          AUTO LOGOUT
+//
+// ADMIN PAGE:
+//   admin.html
+//              ↓
+//       AUTO LOGOUT OFF
+//              ↓
+//       MANUAL LOGOUT ONLY
 //
 // =========================================================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+
+import { initializeApp } from
+  "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
 
 import {
   getAuth,
   onAuthStateChanged,
   signOut
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+} from
+  "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
 import {
   getDatabase,
   ref,
   get
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+} from
+  "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+
 
 
 // =========================================================
@@ -36,15 +53,33 @@ import {
 // =========================================================
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCagFTgiAReVNf8PxNppg01URkQRPoNw3A",
-  authDomain: "ictfrom-free-learn-pack.firebaseapp.com",
-  databaseURL: "https://ictfrom-free-learn-pack-default-rtdb.firebaseio.com",
-  projectId: "ictfrom-free-learn-pack",
-  storageBucket: "ictfrom-free-learn-pack.firebasestorage.app",
-  messagingSenderId: "621015284854",
-  appId: "1:621015284854:web:850148451720ff2529b357",
-  measurementId: "G-7MPX23W72F"
+
+  apiKey:
+    "AIzaSyCagFTgiAReVNf8PxNppg01URkQRPoNw3A",
+
+  authDomain:
+    "ictfrom-free-learn-pack.firebaseapp.com",
+
+  databaseURL:
+    "https://ictfrom-free-learn-pack-default-rtdb.firebaseio.com",
+
+  projectId:
+    "ictfrom-free-learn-pack",
+
+  storageBucket:
+    "ictfrom-free-learn-pack.firebasestorage.app",
+
+  messagingSenderId:
+    "621015284854",
+
+  appId:
+    "1:621015284854:web:850148451720ff2529b357",
+
+  measurementId:
+    "G-7MPX23W72F"
+
 };
+
 
 
 // =========================================================
@@ -52,45 +87,67 @@ const firebaseConfig = {
 // =========================================================
 
 const app = initializeApp(firebaseConfig);
+
 const auth = getAuth(app);
+
 const db = getDatabase(app);
 
 
+
 // =========================================================
-// PATH / ROOT
+// SITE ROOT
 // =========================================================
 
 const ROOT =
-  (typeof window.SITE_ROOT === "string")
+  typeof window.SITE_ROOT === "string"
     ? window.SITE_ROOT
     : "";
 
-const SPLASH_PAGE = ROOT + "index.html";
+
+
+// =========================================================
+// PAGE PATHS
+// =========================================================
+
+const SPLASH_PAGE =
+  ROOT + "index.html";
 
 const REAL_LOGIN_PAGE =
   ROOT + "index log.html";
+
+
+
+// =========================================================
+// CURRENT PAGE
+// =========================================================
+
+const CURRENT_PAGE =
+  window.location.pathname
+    .split("/")
+    .pop()
+    .toLowerCase();
+
 
 
 // =========================================================
 // ADMIN PAGE DETECTION
 // =========================================================
 //
-// Your admin file is:
+// IMPORTANT:
+//
+// Your admin page must be:
+//
 //     admin.html
 //
-// So this detects the page automatically.
-//
 // Example:
-//     https://your-site.com/ictfrom-FLP/admin.html
 //
-// will return TRUE.
+//     https://your-site.com/admin.html
 //
 // =========================================================
 
 const IS_ADMIN_PAGE =
-  window.location.pathname
-    .toLowerCase()
-    .endsWith("/admin.html");
+  CURRENT_PAGE === "admin.html";
+
 
 
 // =========================================================
@@ -100,125 +157,222 @@ const IS_ADMIN_PAGE =
 let resolveReady;
 
 const readyPromise =
-  new Promise((res) => {
-    resolveReady = res;
+  new Promise((resolve) => {
+
+    resolveReady = resolve;
+
   });
 
 
+
 // =========================================================
-// STUDENT AUTO-LOGOUT
+// STUDENT AUTO LOGOUT SETTINGS
 // =========================================================
 //
-// Student:
-//     10 seconds without activity
-//             ↓
-//          logout
-//
-// Admin:
-//     NO timer
-//     NO auto logout
+// 10 seconds = 10,000 milliseconds
 //
 // =========================================================
 
-const IDLE_LIMIT_MS = 10 * 1000; // 10 seconds
+const IDLE_LIMIT_MS =
+  10 * 1000;
 
 let idleTimer = null;
 
 
-// ---------------------------------------------------------
-// Clear timer
-// ---------------------------------------------------------
+
+// =========================================================
+// CLEAR IDLE TIMER
+// =========================================================
 
 function clearIdleTimer() {
 
-  if (idleTimer) {
+  if (idleTimer !== null) {
+
     clearTimeout(idleTimer);
+
     idleTimer = null;
+
   }
 
 }
 
 
-// ---------------------------------------------------------
-// Force logout
-// ---------------------------------------------------------
+
+// =========================================================
+// FORCE AUTO LOGOUT
+// =========================================================
+//
+// This function is ONLY for student pages.
+//
+// admin.html will NEVER be automatically logged out.
+//
+// =========================================================
 
 async function forceIdleLogout() {
 
-  // SECURITY:
-// Never auto logout admin.
+  // =======================================================
+  // SAFETY CHECK
+  // =======================================================
+  //
+  // If this is admin.html, STOP immediately.
+  //
+  // =======================================================
 
   if (IS_ADMIN_PAGE) {
+
     clearIdleTimer();
+
+    console.log(
+      "FLP: Admin page detected - auto logout blocked."
+    );
+
     return;
+
   }
+
+
+
+  // =======================================================
+  // STUDENT AUTO LOGOUT
+  // =======================================================
 
   clearIdleTimer();
 
+
+
   try {
+
     await signOut(auth);
-  } catch (e) {
-    // Ignore logout errors
+
+  } catch (error) {
+
+    console.error(
+      "FLP: Auto logout error:",
+      error
+    );
+
   }
+
+
+
+  // =======================================================
+  // REDIRECT TO LOGIN
+  // =======================================================
 
   window.location.href =
     REAL_LOGIN_PAGE + "?expired=1";
+
 }
 
 
-// ---------------------------------------------------------
-// Reset idle timer
-// ---------------------------------------------------------
+
+// =========================================================
+// RESET IDLE TIMER
+// =========================================================
+//
+// STUDENT:
+//   Restart 10 second timer.
+//
+// ADMIN:
+//   Do NOTHING.
+//
+// =========================================================
 
 function resetIdleTimer() {
 
-  // ADMIN = no idle timer
+  // =======================================================
+  // ADMIN PAGE
+  // =======================================================
+  //
+  // NEVER create an idle timer.
+  //
+  // =======================================================
+
   if (IS_ADMIN_PAGE) {
+
     clearIdleTimer();
+
     return;
+
   }
+
+
+
+  // =======================================================
+  // STUDENT PAGE
+  // =======================================================
 
   clearIdleTimer();
 
-  if (auth.currentUser) {
 
-    idleTimer =
-      setTimeout(
-        forceIdleLogout,
-        IDLE_LIMIT_MS
-      );
+
+  // No logged-in user = no timer
+
+  if (!auth.currentUser) {
+
+    return;
 
   }
 
+
+
+  // =======================================================
+  // START 10 SECOND TIMER
+  // =======================================================
+
+  idleTimer =
+    setTimeout(
+      forceIdleLogout,
+      IDLE_LIMIT_MS
+    );
+
 }
+
 
 
 // =========================================================
 // USER ACTIVITY EVENTS
 // =========================================================
 //
-// These reset the student's 10-second timer.
+// These events reset the student's timer.
+//
+// On admin.html they do nothing because
+// resetIdleTimer() immediately returns.
 //
 // =========================================================
 
 const activityEvents = [
+
   "mousemove",
+
   "mousedown",
+
   "keydown",
+
   "scroll",
+
   "touchstart",
-  "click"
+
+  "click",
+
+  "pointerdown"
+
 ];
 
-activityEvents.forEach((evt) => {
+
+
+activityEvents.forEach((eventName) => {
 
   window.addEventListener(
-    evt,
+    eventName,
     resetIdleTimer,
-    { passive: true }
+    {
+      passive: true
+    }
   );
 
 });
+
 
 
 // =========================================================
@@ -228,6 +382,28 @@ activityEvents.forEach((evt) => {
 document.addEventListener(
   "visibilitychange",
   () => {
+
+    // =====================================================
+    // ADMIN PAGE
+    // =====================================================
+    //
+    // Absolutely NO auto logout handling.
+    //
+    // =====================================================
+
+    if (IS_ADMIN_PAGE) {
+
+      clearIdleTimer();
+
+      return;
+
+    }
+
+
+
+    // =====================================================
+    // STUDENT PAGE
+    // =====================================================
 
     if (
       document.visibilityState === "visible"
@@ -241,39 +417,55 @@ document.addEventListener(
 );
 
 
+
 // =========================================================
-// LOGIN GUARD + ADMIN CHECK
+// FIREBASE AUTH STATE
 // =========================================================
 
 onAuthStateChanged(
   auth,
   async (user) => {
 
-    // -----------------------------------------------------
-    // NOT LOGGED IN
-    // -----------------------------------------------------
+    // =====================================================
+    // USER NOT LOGGED IN
+    // =====================================================
 
     if (!user) {
 
       clearIdleTimer();
 
+
+
       resolveReady({
+
         user: null,
+
         isAdmin: false
+
       });
+
+
+
+      // Redirect only if necessary
 
       window.location.href =
         SPLASH_PAGE;
 
+
+
       return;
+
     }
 
 
-    // -----------------------------------------------------
+
+    // =====================================================
     // CHECK ADMIN STATUS
-    // -----------------------------------------------------
+    // =====================================================
 
     let isAdmin = false;
+
+
 
     try {
 
@@ -285,208 +477,394 @@ onAuthStateChanged(
           )
         );
 
+
+
       isAdmin =
         adminSnap.exists() &&
         adminSnap.val() === true;
 
-    } catch (e) {
+    } catch (error) {
+
+      console.error(
+        "FLP: Admin check failed:",
+        error
+      );
 
       isAdmin = false;
 
     }
 
 
-    // -----------------------------------------------------
-    // AUTO-LOGOUT TIMER
-    // -----------------------------------------------------
+
+    // =====================================================
+    // AUTO LOGOUT CONTROL
+    // =====================================================
     //
-    // IMPORTANT:
-    // Admin page -> NEVER start timer
-    // Student page -> start 10 sec timer
+    // admin.html
+    //     ↓
+    // NEVER start timer
     //
+    // other pages
+    //     ↓
+    // start 10 second timer
+    //
+    // =====================================================
 
     if (IS_ADMIN_PAGE) {
 
       clearIdleTimer();
 
+
+
+      console.log(
+        "FLP: Admin page - auto logout DISABLED."
+      );
+
     } else {
 
       resetIdleTimer();
 
+
+
+      console.log(
+        "FLP: Student page - 10 second auto logout ENABLED."
+      );
+
     }
 
 
-    // -----------------------------------------------------
+
+    // =====================================================
     // READY
-    // -----------------------------------------------------
+    // =====================================================
 
     resolveReady({
-      user,
-      isAdmin
+
+      user: user,
+
+      isAdmin: isAdmin
+
     });
 
   }
 );
 
 
+
 // =========================================================
-// PUBLIC API
+// PUBLIC FLP API
 // =========================================================
 
 window.FLP = {
 
-  ready: readyPromise,
+  // =======================================================
+  // READY
+  // =======================================================
 
-  auth,
+  ready:
+    readyPromise,
 
-  db,
+
+
+  // =======================================================
+  // FIREBASE AUTH
+  // =======================================================
+
+  auth:
+    auth,
+
+
+
+  // =======================================================
+  // FIREBASE DATABASE
+  // =======================================================
+
+  db:
+    db,
+
+
+
+  // =======================================================
+  // ADMIN PAGE STATUS
+  // =======================================================
+
+  isAdminPage:
+    IS_ADMIN_PAGE,
+
 
 
   // =======================================================
   // MANUAL LOGOUT
   // =======================================================
   //
-  // This works for BOTH admin and students.
+  // This function is used by your Logout button.
   //
-  // Admin can still click the Logout button manually.
+  // ADMIN:
+  //   Manual logout works.
+  //
+  // STUDENT:
+  //   Manual logout works.
   //
   // =======================================================
 
-  logout: async () => {
+  logout:
+    async () => {
 
-    clearIdleTimer();
+      // Stop any idle timer
 
-    try {
+      clearIdleTimer();
 
-      await signOut(auth);
 
-    } catch (e) {}
 
-    window.location.href =
-      SPLASH_PAGE;
+      try {
 
-  },
+        await signOut(auth);
+
+      } catch (error) {
+
+        console.error(
+          "FLP: Manual logout error:",
+          error
+        );
+
+      }
+
+
+
+      // Go to splash page
+
+      window.location.href =
+        SPLASH_PAGE;
+
+    },
+
 
 
   // =======================================================
   // GET LESSON ACCESS
   // =======================================================
 
-  getLessonAccess: async (lessonId) => {
+  getLessonAccess:
+    async (lessonId) => {
 
-    const {
-      user,
-      isAdmin
-    } = await readyPromise;
-
-
-    if (!user) {
-
-      return {
-        full: false,
-        episodes: {},
-        isAdmin: false
-      };
-
-    }
+      const {
+        user,
+        isAdmin
+      } =
+        await readyPromise;
 
 
-    // Admin sees everything
 
-    if (isAdmin) {
+      // ===================================================
+      // NO USER
+      // ===================================================
 
-      return {
-        full: true,
-        episodes: {},
-        isAdmin: true
-      };
+      if (!user) {
 
-    }
+        return {
+
+          full: false,
+
+          episodes: {},
+
+          isAdmin: false
+
+        };
+
+      }
 
 
-    try {
 
-      const snap =
-        await get(
-          ref(
-            db,
-            `access/${user.uid}/${lessonId}`
-          )
+      // ===================================================
+      // ADMIN
+      // ===================================================
+      //
+      // Admin has full access.
+      //
+      // ===================================================
+
+      if (isAdmin) {
+
+        return {
+
+          full: true,
+
+          episodes: {},
+
+          isAdmin: true
+
+        };
+
+      }
+
+
+
+      // ===================================================
+      // STUDENT
+      // ===================================================
+
+      try {
+
+        const snap =
+          await get(
+            ref(
+              db,
+              `access/${user.uid}/${lessonId}`
+            )
+          );
+
+
+
+        const value =
+          snap.exists()
+            ? snap.val()
+            : {};
+
+
+
+        return {
+
+          full:
+            !!value.full,
+
+          episodes:
+            value.episodes || {},
+
+          isAdmin:
+            false
+
+        };
+
+      } catch (error) {
+
+        console.error(
+          "FLP: Lesson access error:",
+          error
         );
 
-      const val =
-        snap.exists()
-          ? snap.val()
-          : {};
 
 
-      return {
+        return {
 
-        full: !!val.full,
+          full: false,
 
-        episodes:
-          val.episodes || {},
+          episodes: {},
 
-        isAdmin: false
+          isAdmin: false
 
-      };
+        };
 
-    } catch (e) {
+      }
 
-      return {
+    },
 
-        full: false,
-
-        episodes: {},
-
-        isAdmin: false
-
-      };
-
-    }
-
-  },
 
 
   // =======================================================
   // GET VIDEO URL
   // =======================================================
 
-  getVideoUrl: async (lessonId, ep) => {
+  getVideoUrl:
+    async (lessonId, ep) => {
 
-    const {
-      user
-    } = await readyPromise;
-
-
-    if (!user) {
-
-      return null;
-
-    }
+      const {
+        user
+      } =
+        await readyPromise;
 
 
-    try {
 
-      const snap =
-        await get(
-          ref(
-            db,
-            `lessonVideos/${lessonId}/${ep}`
-          )
+      // ===================================================
+      // NO USER
+      // ===================================================
+
+      if (!user) {
+
+        return null;
+
+      }
+
+
+
+      try {
+
+        const snap =
+          await get(
+            ref(
+              db,
+              `lessonVideos/${lessonId}/${ep}`
+            )
+          );
+
+
+
+        return snap.exists()
+          ? snap.val()
+          : null;
+
+      } catch (error) {
+
+        console.error(
+          "FLP: Video URL error:",
+          error
         );
 
 
-      return snap.exists()
-        ? snap.val()
-        : null;
 
-    } catch (e) {
+        return null;
 
-      return null;
+      }
 
     }
 
-  }
-
 };
+
+
+
+// =========================================================
+// DEBUG INFORMATION
+// =========================================================
+//
+// Open browser Console (F12)
+//
+// On admin.html you should see:
+//
+//   Admin page: true
+//   Auto logout: DISABLED
+//
+// On student pages:
+//
+//   Admin page: false
+//   Auto logout: ENABLED (10 seconds)
+//
+// =========================================================
+
+console.log(
+  "=========================================="
+);
+
+console.log(
+  "ictfrom | FLP Access Control Loaded"
+);
+
+console.log(
+  "Current Page:",
+  CURRENT_PAGE
+);
+
+console.log(
+  "Admin Page:",
+  IS_ADMIN_PAGE
+);
+
+console.log(
+  "Auto Logout:",
+  IS_ADMIN_PAGE
+    ? "DISABLED"
+    : "ENABLED - 10 seconds"
+);
+
+console.log(
+  "=========================================="
+);
+```
