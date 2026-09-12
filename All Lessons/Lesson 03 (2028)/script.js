@@ -4,17 +4,23 @@
 // folder called "thumbnails" right next to this index.html file, and
 // reference them with a RELATIVE path like "thumbnails/lesson01.png".
 //
+// NOTE ON LOCK/UNLOCK:
+// This file no longer stores YouTube links itself. Whether an episode
+// plays or shows a lock icon depends on window.FLP.getLessonAccess()
+// (see assets/access-control.js), which checks the Firebase Database
+// for what this logged-in student has been unlocked for by an admin.
+//
 // NOTE ON EPISODE DATA:
-// The episode CATALOG (title/tags/duration/thumb) lives in "data.js"
-// (loaded before this file in index.html) as the single source of
-// truth — Home.html's site-wide search reads the SAME data.js file.
-// The REAL youtube link is NOT in data.js anymore — it is fetched
-// from Firebase (only for students who have paid) by the inline
-// <script type="module"> block in index.html, which then calls
-// window.renderLessonGrid(episodes, paid) below.
+// The episode list itself lives in "data.js" (loaded before this file
+// in index.html) as the single source of truth — Home.html's site-wide
+// search reads the SAME data.js file, so editing an episode here means
+// editing it ONLY in data.js. Never re-add episodes below.
+const LESSON = window.CURRENT_LESSON;
+const episodes = LESSON.episodes;
+const LESSON_ID = LESSON.lessonId;
 
 const playIcon = `<svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>`;
-const lockIcon = `<svg viewBox="0 0 24 24" fill="white" width="22" height="22"><path d="M12 17a2 2 0 100-4 2 2 0 000 4zm6-9h-1V6a5 5 0 00-10 0v2H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V10a2 2 0 00-2-2zm-7-2V6a3 3 0 016 0v2H9z"/></svg>`;
+const lockIcon = `<svg viewBox="0 0 24 24" fill="white"><path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6-9h-1V6a5 5 0 0 0-10 0v2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2zM8.9 6a3.1 3.1 0 0 1 6.2 0v2H8.9V6z"/></svg>`;
 
 const grid = document.getElementById('grid');
 
@@ -28,31 +34,30 @@ function extractYouTubeId(input){
   return null;
 }
 
-// Called by the module script in index.html once it knows (a) whether
-// this student has paid for this lesson, and (b) if so, the real
-// youtube links merged onto each episode object.
-window.renderLessonGrid = function(episodes, lessonPaid){
-  grid.innerHTML = '';
+async function init(){
+  // Ask the shared access-control module whether THIS logged-in
+  // student has this lesson unlocked (fully, or episode-by-episode).
+  const access = await window.FLP.getLessonAccess(LESSON_ID);
 
   episodes.forEach((e, i) => {
+    const unlocked = access.full || !!access.episodes[e.ep];
+
     const card = document.createElement('div');
-    card.className = 'card' + (lessonPaid ? '' : ' locked');
+    card.className = 'card' + (unlocked ? '' : ' locked');
     card.id = 'ep-' + e.ep; // lets Home page search jump straight to this episode via #ep=01 etc.
     card.style.animationDelay = (i * 0.08) + 's';
-
-    const videoId = lessonPaid ? extractYouTubeId(e.youtube) : null;
-    const watchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : null;
 
     card.innerHTML = `
       <div class="ep-tag">EP ${e.ep}</div>
       <div class="thumb" data-idx="${i}">
-        <button class="play-btn" title="${lessonPaid ? 'Watch on YouTube' : 'Locked — pay to unlock'}">${lessonPaid ? playIcon : lockIcon}</button>
-        ${lessonPaid ? `<span class="duration">${e.duration}</span>` : `<span class="duration">🔒 Locked</span>`}
+        <button class="play-btn" title="${unlocked ? 'Watch on YouTube' : 'Locked — contact admin'}">${unlocked ? playIcon : lockIcon}</button>
+        <span class="duration">${e.duration}</span>
+        ${unlocked ? '' : '<div class="lock-badge">🔒 Locked</div>'}
       </div>
       <div class="body">
         <div class="unit">${e.unit}</div>
         <div class="title">${e.title}</div>
-        <div class="tags">${lessonPaid ? e.tags : 'Meka balanna nam lesson eka pay karanna ඕන 🔒'}</div>
+        <div class="tags">${e.tags}</div>
       </div>
     `;
     grid.appendChild(card);
@@ -60,9 +65,9 @@ window.renderLessonGrid = function(episodes, lessonPaid){
     const thumb = card.querySelector('.thumb');
     const btn = card.querySelector('.play-btn');
 
-    // Try to load the thumbnail image ONLY when paid — unpaid cards show the
-    // grey placeholder instead, so the locked state is obvious at a glance.
-    if (lessonPaid && e.thumb) {
+    // Try to load the thumbnail image. If it fails (missing file), fall back
+    // to the diagonal-stripe placeholder pattern instead of a broken image.
+    if (e.thumb) {
       const probe = new Image();
       probe.onload = () => { thumb.style.backgroundImage = `url('${e.thumb}')`; };
       probe.onerror = () => { thumb.classList.add('no-thumb'); };
@@ -72,13 +77,16 @@ window.renderLessonGrid = function(episodes, lessonPaid){
     }
 
     // Click anywhere on the thumbnail (or the play button):
-    //  - if unlocked, opens the video in a new YouTube tab.
-    //  - if locked, explains why instead of doing nothing silently.
-    function handleClick(){
-      if (!lessonPaid) {
-        alert('🔒 Mema lesson eka balanna nam class fee eka pay karanna ඕන.\nPay karapu passe, admin eka approve kalaama automatic ව unlock වෙනවා.');
+    //  - if unlocked, fetch the real link from Firebase and open it
+    //  - if locked, tell the student instead of opening anything
+    async function goToYouTube(){
+      if (!unlocked) {
+        alert('🔒 මෙම විඩියෝව තවම Lock වී ඇත.\nUnlock කරගැනීමට admin ව සම්බන්ධ කරගන්න.');
         return;
       }
+      const link = await window.FLP.getVideoUrl(LESSON_ID, e.ep);
+      const videoId = extractYouTubeId(link);
+      const watchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : link;
       if (!watchUrl) {
         alert('No valid YouTube link set for this episode yet.');
         return;
@@ -86,15 +94,15 @@ window.renderLessonGrid = function(episodes, lessonPaid){
       window.open(watchUrl, '_blank', 'noopener');
     }
 
-    thumb.addEventListener('click', handleClick);
+    thumb.addEventListener('click', goToYouTube);
     btn.addEventListener('click', (ev) => {
       ev.stopPropagation();
-      handleClick();
+      goToYouTube();
     });
   });
 
   jumpToEpisodeFromHash();
-};
+}
 
 // =========================================================
 // JUMP TO A SPECIFIC EPISODE WHEN OPENED FROM HOME PAGE SEARCH
@@ -138,3 +146,5 @@ function jumpToEpisodeFromHash(){
     }, 3800);
   }, 300);
 }
+
+init();
