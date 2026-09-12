@@ -1,42 +1,39 @@
 // =========================================================
 // ictfrom | FLP — SHARED ACCESS CONTROL MODULE
 // =========================================================
-// Include this on ANY page that needs to know:
-//   - Is someone logged in? (if not, this sends them to the login page)
-//   - Is this user an admin?
-//   - Is a given lesson / episode unlocked for this user?
 //
-// HOW TO USE (put BOTH lines in <head> or right before </body>,
-// this exact order, and set SITE_ROOT to the relative path back
-// to the project root):
+// Handles:
+//   - Login guard
+//   - Admin detection
+//   - Lesson / episode access
+//   - YouTube video URL access
+//   - Student idle auto-logout
 //
-//   <script>window.SITE_ROOT = '../../';</script>
-//   <script type="module" src="../../assets/access-control.js"></script>
+// IMPORTANT:
+//   - STUDENT pages  -> auto logout after 10 seconds
+//   - ADMIN page     -> NEVER auto logout
+//                       (manual Logout only)
 //
-// Then in your OWN script (must also be type="module" so it runs
-// after this one), you can do:
-//
-//   const access = await window.FLP.getLessonAccess('lesson01');
-//   // access.full        -> true if the whole lesson is unlocked
-//   // access.episodes    -> { "01": true, "03": true, ... } per-episode unlocks
-//   // access.isAdmin     -> true if this user is an admin (sees everything)
-//
-//   const url = await window.FLP.getVideoUrl('lesson01', '01');
-//   // returns the YouTube URL string, or null if locked / not set.
-//   // (Locked videos are NOT readable by a normal student — this is
-//   // enforced by the Firebase Security Rules, not just hidden in the UI.)
 // =========================================================
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+
 import {
   getAuth,
   onAuthStateChanged,
   signOut
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+
 import {
   getDatabase,
   ref,
   get
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+
+
+// =========================================================
+// FIREBASE CONFIG
+// =========================================================
 
 const firebaseConfig = {
   apiKey: "AIzaSyCagFTgiAReVNf8PxNppg01URkQRPoNw3A",
@@ -49,104 +46,447 @@ const firebaseConfig = {
   measurementId: "G-7MPX23W72F"
 };
 
+
+// =========================================================
+// FIREBASE INITIALIZE
+// =========================================================
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-const ROOT = (typeof window.SITE_ROOT === 'string') ? window.SITE_ROOT : '';
-const SPLASH_PAGE = ROOT + 'index.html';          // redirects further to the real login page
-const REAL_LOGIN_PAGE = ROOT + 'index log.html';  // has a space in the filename, exactly as on disk
+
+// =========================================================
+// PATH / ROOT
+// =========================================================
+
+const ROOT =
+  (typeof window.SITE_ROOT === "string")
+    ? window.SITE_ROOT
+    : "";
+
+const SPLASH_PAGE = ROOT + "index.html";
+
+const REAL_LOGIN_PAGE =
+  ROOT + "index log.html";
+
+
+// =========================================================
+// ADMIN PAGE DETECTION
+// =========================================================
+//
+// Your admin file is:
+//     admin.html
+//
+// So this detects the page automatically.
+//
+// Example:
+//     https://your-site.com/ictfrom-FLP/admin.html
+//
+// will return TRUE.
+//
+// =========================================================
+
+const IS_ADMIN_PAGE =
+  window.location.pathname
+    .toLowerCase()
+    .endsWith("/admin.html");
+
+
+// =========================================================
+// READY PROMISE
+// =========================================================
 
 let resolveReady;
-const readyPromise = new Promise((res) => { resolveReady = res; });
 
-// ---------------------------------------------------------
-// 10-second idle auto-logout (same behaviour as the rest of the site)
-// ---------------------------------------------------------
-const IDLE_LIMIT_MS = 10 * 1000;
+const readyPromise =
+  new Promise((res) => {
+    resolveReady = res;
+  });
+
+
+// =========================================================
+// STUDENT AUTO-LOGOUT
+// =========================================================
+//
+// Student:
+//     10 seconds without activity
+//             ↓
+//          logout
+//
+// Admin:
+//     NO timer
+//     NO auto logout
+//
+// =========================================================
+
+const IDLE_LIMIT_MS = 10 * 1000; // 10 seconds
+
 let idleTimer = null;
 
-async function forceIdleLogout(){
-  if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
-  try { await signOut(auth); } catch (e) {}
-  window.location.href = REAL_LOGIN_PAGE + '?expired=1';
-}
 
-function resetIdleTimer(){
-  if (idleTimer) clearTimeout(idleTimer);
-  if (auth.currentUser) {
-    idleTimer = setTimeout(forceIdleLogout, IDLE_LIMIT_MS);
+// ---------------------------------------------------------
+// Clear timer
+// ---------------------------------------------------------
+
+function clearIdleTimer() {
+
+  if (idleTimer) {
+    clearTimeout(idleTimer);
+    idleTimer = null;
   }
+
 }
 
-['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach(evt => {
-  window.addEventListener(evt, resetIdleTimer, { passive: true });
-});
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') resetIdleTimer();
-});
 
 // ---------------------------------------------------------
-// LOGIN GUARD — if nobody is signed in, leave immediately.
+// Force logout
 // ---------------------------------------------------------
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    resolveReady({ user: null, isAdmin: false });
-    window.location.href = SPLASH_PAGE;
+
+async function forceIdleLogout() {
+
+  // SECURITY:
+// Never auto logout admin.
+
+  if (IS_ADMIN_PAGE) {
+    clearIdleTimer();
     return;
   }
 
-  resetIdleTimer();
+  clearIdleTimer();
 
-  let isAdmin = false;
   try {
-    const adminSnap = await get(ref(db, 'admins/' + user.uid));
-    isAdmin = adminSnap.exists() && adminSnap.val() === true;
+    await signOut(auth);
   } catch (e) {
-    isAdmin = false;
+    // Ignore logout errors
   }
 
-  resolveReady({ user, isAdmin });
+  window.location.href =
+    REAL_LOGIN_PAGE + "?expired=1";
+}
+
+
+// ---------------------------------------------------------
+// Reset idle timer
+// ---------------------------------------------------------
+
+function resetIdleTimer() {
+
+  // ADMIN = no idle timer
+  if (IS_ADMIN_PAGE) {
+    clearIdleTimer();
+    return;
+  }
+
+  clearIdleTimer();
+
+  if (auth.currentUser) {
+
+    idleTimer =
+      setTimeout(
+        forceIdleLogout,
+        IDLE_LIMIT_MS
+      );
+
+  }
+
+}
+
+
+// =========================================================
+// USER ACTIVITY EVENTS
+// =========================================================
+//
+// These reset the student's 10-second timer.
+//
+// =========================================================
+
+const activityEvents = [
+  "mousemove",
+  "mousedown",
+  "keydown",
+  "scroll",
+  "touchstart",
+  "click"
+];
+
+activityEvents.forEach((evt) => {
+
+  window.addEventListener(
+    evt,
+    resetIdleTimer,
+    { passive: true }
+  );
+
 });
 
-// ---------------------------------------------------------
-// PUBLIC API
-// ---------------------------------------------------------
-window.FLP = {
-  ready: readyPromise,
+
+// =========================================================
+// TAB VISIBILITY
+// =========================================================
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+
+    if (
+      document.visibilityState === "visible"
+    ) {
+
+      resetIdleTimer();
+
+    }
+
+  }
+);
+
+
+// =========================================================
+// LOGIN GUARD + ADMIN CHECK
+// =========================================================
+
+onAuthStateChanged(
   auth,
+  async (user) => {
+
+    // -----------------------------------------------------
+    // NOT LOGGED IN
+    // -----------------------------------------------------
+
+    if (!user) {
+
+      clearIdleTimer();
+
+      resolveReady({
+        user: null,
+        isAdmin: false
+      });
+
+      window.location.href =
+        SPLASH_PAGE;
+
+      return;
+    }
+
+
+    // -----------------------------------------------------
+    // CHECK ADMIN STATUS
+    // -----------------------------------------------------
+
+    let isAdmin = false;
+
+    try {
+
+      const adminSnap =
+        await get(
+          ref(
+            db,
+            "admins/" + user.uid
+          )
+        );
+
+      isAdmin =
+        adminSnap.exists() &&
+        adminSnap.val() === true;
+
+    } catch (e) {
+
+      isAdmin = false;
+
+    }
+
+
+    // -----------------------------------------------------
+    // AUTO-LOGOUT TIMER
+    // -----------------------------------------------------
+    //
+    // IMPORTANT:
+    // Admin page -> NEVER start timer
+    // Student page -> start 10 sec timer
+    //
+
+    if (IS_ADMIN_PAGE) {
+
+      clearIdleTimer();
+
+    } else {
+
+      resetIdleTimer();
+
+    }
+
+
+    // -----------------------------------------------------
+    // READY
+    // -----------------------------------------------------
+
+    resolveReady({
+      user,
+      isAdmin
+    });
+
+  }
+);
+
+
+// =========================================================
+// PUBLIC API
+// =========================================================
+
+window.FLP = {
+
+  ready: readyPromise,
+
+  auth,
+
   db,
 
+
+  // =======================================================
+  // MANUAL LOGOUT
+  // =======================================================
+  //
+  // This works for BOTH admin and students.
+  //
+  // Admin can still click the Logout button manually.
+  //
+  // =======================================================
+
   logout: async () => {
-    try { await signOut(auth); } catch (e) {}
-    window.location.href = SPLASH_PAGE;
+
+    clearIdleTimer();
+
+    try {
+
+      await signOut(auth);
+
+    } catch (e) {}
+
+    window.location.href =
+      SPLASH_PAGE;
+
   },
 
-  // { full: bool, episodes: {ep: true, ...}, isAdmin: bool }
+
+  // =======================================================
+  // GET LESSON ACCESS
+  // =======================================================
+
   getLessonAccess: async (lessonId) => {
-    const { user, isAdmin } = await readyPromise;
-    if (!user) return { full: false, episodes: {}, isAdmin: false };
-    if (isAdmin) return { full: true, episodes: {}, isAdmin: true }; // admins preview everything
-    try {
-      const snap = await get(ref(db, `access/${user.uid}/${lessonId}`));
-      const val = snap.exists() ? snap.val() : {};
-      return { full: !!val.full, episodes: val.episodes || {}, isAdmin: false };
-    } catch (e) {
-      return { full: false, episodes: {}, isAdmin: false };
+
+    const {
+      user,
+      isAdmin
+    } = await readyPromise;
+
+
+    if (!user) {
+
+      return {
+        full: false,
+        episodes: {},
+        isAdmin: false
+      };
+
     }
+
+
+    // Admin sees everything
+
+    if (isAdmin) {
+
+      return {
+        full: true,
+        episodes: {},
+        isAdmin: true
+      };
+
+    }
+
+
+    try {
+
+      const snap =
+        await get(
+          ref(
+            db,
+            `access/${user.uid}/${lessonId}`
+          )
+        );
+
+      const val =
+        snap.exists()
+          ? snap.val()
+          : {};
+
+
+      return {
+
+        full: !!val.full,
+
+        episodes:
+          val.episodes || {},
+
+        isAdmin: false
+
+      };
+
+    } catch (e) {
+
+      return {
+
+        full: false,
+
+        episodes: {},
+
+        isAdmin: false
+
+      };
+
+    }
+
   },
 
-  // Returns the YouTube URL string, or null if locked / missing.
-  // Locked videos are blocked at the Firebase Security Rules level,
-  // so a student can't just "view source" to get the link.
+
+  // =======================================================
+  // GET VIDEO URL
+  // =======================================================
+
   getVideoUrl: async (lessonId, ep) => {
-    const { user } = await readyPromise;
-    if (!user) return null;
-    try {
-      const snap = await get(ref(db, `lessonVideos/${lessonId}/${ep}`));
-      return snap.exists() ? snap.val() : null;
-    } catch (e) {
+
+    const {
+      user
+    } = await readyPromise;
+
+
+    if (!user) {
+
       return null;
+
     }
+
+
+    try {
+
+      const snap =
+        await get(
+          ref(
+            db,
+            `lessonVideos/${lessonId}/${ep}`
+          )
+        );
+
+
+      return snap.exists()
+        ? snap.val()
+        : null;
+
+    } catch (e) {
+
+      return null;
+
+    }
+
   }
+
 };
