@@ -199,6 +199,35 @@ main{
 .thumb.is-playing .duration{ opacity:0; transition: opacity .25s ease; }
 .thumb.is-playing:hover .duration{ opacity:1; }
 
+/* =========================================================
+   LOCKED EPISODE STATE (student hasn't been unlocked by admin)
+   ========================================================= */
+.card.locked .thumb{
+  filter: grayscale(65%) brightness(.55);
+}
+.card.locked .play-btn{
+  background: rgba(10,9,8,.75) !important;
+  border: 1.5px solid var(--red) !important;
+  animation: none !important;
+  box-shadow: none !important;
+}
+.card.locked .play-btn svg{ margin-left:0; width:18px; height:18px; }
+.lock-badge{
+  position:absolute; top:16px; right:16px; z-index:3;
+  background: rgba(10,9,8,.88);
+  border: 1px solid var(--red-dim);
+  color:#fff;
+  font-family: var(--mono);
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:1.5px;
+  padding: 5px 9px;
+  border-radius: 4px;
+}
+.card.locked .title,
+.card.locked .unit,
+.card.locked .tags{ opacity:.55; }
+
 .upload-hint{
   position:absolute; bottom:12px; left:12px; z-index:3;
   font-family: var(--mono);
@@ -260,89 +289,4 @@ footer{
 
 @media (prefers-reduced-motion: reduce){
   *{ animation: none !important; transition:none !important; }
-}
-
-/* ---------------------------------------------------------
-   SEARCH-RESULT HIGHLIGHT
-   Added to a card briefly (via script.js) when the user
-   arrives here from a Home-page search result click, so the
-   matched episode is obviously flagged after the auto-scroll.
-   The rest of the grid dims at the same time so the matched
-   card visually pops out from every other video.
-   --------------------------------------------------------- */
-.card.highlight{
-  animation: highlightPulse 3.8s ease;
-  transform: scale(1.035);
-  z-index: 5;
-  border-color: var(--red) !important;
-  box-shadow: 0 0 0 3px var(--red), 0 22px 50px -18px var(--red-glow) !important;
-}
-@keyframes highlightPulse{
-  0%{ box-shadow: 0 0 0 3px var(--red), 0 0 0 0 var(--red-glow); }
-  20%{ box-shadow: 0 0 0 3px var(--red), 0 0 0 14px rgba(226,38,31,0.25); }
-  60%{ box-shadow: 0 0 0 3px var(--red), 0 0 0 14px rgba(226,38,31,0.25); }
-  100%{ box-shadow: 0 0 0 3px var(--red), 0 0 0 0 rgba(226,38,31,0); }
-}
-
-/* Every card that ISN'T the search match fades back and dims,
-   pushing focus toward the highlighted one. */
-.card.dimmed{
-  opacity: 0.32;
-  filter: grayscale(0.4);
-  transform: scale(0.98);
-  transition: opacity .5s ease, filter .5s ease, transform .5s ease;
-}
-.card:not(.dimmed){
-  transition: opacity .5s ease, filter .5s ease, transform .3s ease;
-}
-
-/* ---------------------------------------------------------
-   PAYMENT-LOCKED STATE
-   Added by script.js when this student hasn't paid for the
-   lesson yet — dims the thumbnail, swaps the play icon for a
-   lock icon, and greys the tags line into a "pay to unlock"
-   message.
-   --------------------------------------------------------- */
-.lock-banner{
-  background: var(--card);
-  border: 1px solid var(--red-dim);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 13px;
-  letter-spacing: .5px;
-  padding: 14px 18px;
-  border-radius: 10px;
-  margin-bottom: 26px;
-}
-.card.locked{ opacity:.82; }
-.card.locked:hover{ border-color: var(--line); transform:none; box-shadow:none; }
-.card.locked .thumb{ filter: grayscale(1) brightness(.55); cursor: not-allowed; }
-.card.locked .play-btn{ animation:none; background: rgba(10,9,8,0.7); border:1.5px solid var(--muted); }
-.card.locked .duration{ background: rgba(10,9,8,0.9); color: var(--muted); }
-.card.locked .tags{ color: var(--red-dim); }
-
-/* "🔎 Search Match" badge stamped on the matched card */
-.match-badge{
-  position:absolute;
-  top:16px; right:16px; z-index:6;
-  background: var(--red);
-  color:#0a0908;
-  font-family: var(--mono);
-  font-weight:700;
-  font-size:11px;
-  letter-spacing:1px;
-  padding: 6px 11px;
-  border-radius: 20px;
-  box-shadow: 0 6px 18px -4px var(--red-glow);
-  animation: badgeIn .35s cubic-bezier(.2,.8,.3,1.2);
-}
-.match-badge.fade-out{
-  animation: badgeOut .5s ease forwards;
-}
-@keyframes badgeIn{
-  from{ opacity:0; transform: translateY(-8px) scale(.8); }
-  to{ opacity:1; transform: translateY(0) scale(1); }
-}
-@keyframes badgeOut{
-  to{ opacity:0; transform: translateY(-6px) scale(.85); }
 }
