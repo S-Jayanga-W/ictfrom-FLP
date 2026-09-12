@@ -1,11 +1,13 @@
 // =========================================================
 // SINGLE SOURCE OF TRUTH for Lesson 03 episode data.
 // Both this lesson's own script.js AND the site-wide Home.html
-// search read from this ONE file.
+// search read from this ONE file. Edit episodes ONLY here —
+// never re-type them anywhere else.
 //
 // NOTE — YOUTUBE LINKS LIVE IN FIREBASE, NOT HERE:
 // See lessonVideos/<lessonId>/<ep> in the Firebase Realtime
-// Database (managed from admin.html).
+// Database (managed from admin.html). A student only receives
+// the real link once an admin unlocks it for them.
 // =========================================================
 window.CURRENT_LESSON = {
   lessonId: "lesson03",
