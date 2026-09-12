@@ -208,29 +208,6 @@
     setTimeout(()=>{ toastEl.className = 'toast'; }, 2200);
   }
 
-  // =========================================================
-  // GATE: only admins get past this point.
-  // =========================================================
-  const { user, isAdmin } = await window.FLP.ready;
-  if (!user) {
-    // access-control.js already redirects to login; nothing more to do.
-  } else if (!isAdmin) {
-    gate.innerHTML = `
-      <h1>🚫 ACCESS DENIED</h1>
-      <p>This page is for admins only. If you believe this is a mistake, contact the site owner.
-      Redirecting you back to the site…</p>`;
-    setTimeout(()=>{ window.location.href = 'Home.html'; }, 2500);
-  } else {
-    gate.classList.add('hidden');
-    app.classList.add('ready');
-    initAdmin();
-  }
-
-  document.getElementById('logoutLink').addEventListener('click', (e)=>{
-    e.preventDefault();
-    window.FLP.logout();
-  });
-
   const db = window.FLP.db;
 
   // =========================================================
@@ -238,6 +215,12 @@
   // OWN data.js as the single source of truth, same trick Home.html
   // uses for its search index. No video URLs are in data.js anymore,
   // so this is completely safe to load for the UI.
+  //
+  // NOTE: these declarations MUST come before the GATE block below,
+  // since a successful admin check calls initAdmin() immediately —
+  // and initAdmin() needs LESSON_FOLDERS / loadLessons to already
+  // exist at that point (const bindings are not usable before the
+  // line that defines them actually runs).
   // =========================================================
   const LESSON_FOLDERS = [
     "All Lessons/Lesson 01 (2028)/",
@@ -270,6 +253,29 @@
   let LESSONS = [];
   let USERS = {}; // uid -> profile
   let selectedUid = null;
+
+  // =========================================================
+  // GATE: only admins get past this point.
+  // =========================================================
+  const { user, isAdmin } = await window.FLP.ready;
+  if (!user) {
+    // access-control.js already redirects to login; nothing more to do.
+  } else if (!isAdmin) {
+    gate.innerHTML = `
+      <h1>🚫 ACCESS DENIED</h1>
+      <p>This page is for admins only. If you believe this is a mistake, contact the site owner.
+      Redirecting you back to the site…</p>`;
+    setTimeout(()=>{ window.location.href = 'Home.html'; }, 2500);
+  } else {
+    gate.classList.add('hidden');
+    app.classList.add('ready');
+    initAdmin();
+  }
+
+  document.getElementById('logoutLink').addEventListener('click', (e)=>{
+    e.preventDefault();
+    window.FLP.logout();
+  });
 
   async function initAdmin(){
     LESSONS = await loadLessons();
