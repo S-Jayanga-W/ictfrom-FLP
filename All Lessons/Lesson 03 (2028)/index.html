@@ -10,69 +10,30 @@
 <body>
 <div class="noise-layer"></div>
 <header>
-  <div class="eyebrow"><span class="dot"></span>REC · 10 EPISODES LOADED</div>
+  <div class="eyebrow"><span class="dot"></span>REC · 02 EPISODES LOADED</div>
   <h1>03. Number System <br><span>| @Ravindu Bandaranayake</span></h1>
   <p class="sub">මෙහි ඇතුළත් සියලුම Video පටයහි අයිතිය ictfromabc ආයතනයේ Ravidu Bandaranayake ගුරුතුමා සතුව පවතින බව දැනුම් දෙමි. මෙහි සම්පූර්ණ ගෞරවය Ravindu Bandaranayake සතුවේ. කව පංති සදහා සම්බන්ධ වීමට පිවිසෙන්න 071 455 5513 / [WWW.ictfromabc.com](https://WWW.ictfromabc.com)</p>
 </header>
 <main>
-  <div class="lock-banner" id="lockBanner" style="display:none;">
-    🔒 Oyaage class fee eka pay karala නෑ — mema lesson eke video okkoma locked. Pay karanna: 071 455 5513
-  </div>
   <div class="grid" id="grid"></div>
 </main>
 <footer>©Ravindu Bandaranayake | H.M. Sithija Jayanga.W <br>
   මෙහි ඇතුළත් සියලුම Video පටයහි අයිතිය ictfromabc ආයතනයේ Ravidu Bandaranayake ගුරුතුමා සතුව පවතින බව දැනුම් දෙමි. මෙහි සම්පූර්ණ ගෞරවය Ravindu Bandaranayake සතුවේ. කව පංති සදහා සම්බන්ධ වීමට පිවිසෙන්න 071 455 5513 / [WWW.ictfromabc.com](https://WWW.ictfromabc.com)</footer>
+
 <!-- data.js MUST load before script.js — it defines window.CURRENT_LESSON,
-     which is the single source of truth for this lesson's episode CATALOG
-     (title/tags/duration/thumb — no real video links, see data.js).
-     script.js defines window.renderLessonGrid(), called below once we
-     know whether this student has paid. -->
+     which is the single source of truth for this lesson's episode list
+     (also used by Home.html's site-wide search). -->
 <script src="data.js"></script>
-<script src="script.js"></script>
+
 <!-- =========================================================
-     FIREBASE AUTH + PAYMENT GATE + AUTO-LOGOUT (10 SECOND IDLE LIMIT)
-     This file lives two folders deep (All Lessons/Lesson 01 (2028)/),
-     so paths to the site root use ../../.
-     Real logic lives in ../../assets/flp-shared.js — this block just
-     wires it up for THIS lesson (LESSON_ID below).
+     FIREBASE AUTH + LOCK/UNLOCK ACCESS CONTROL
+     This file lives two folders deep (All Lessons/Lesson 03 (2028)/),
+     so SITE_ROOT points back up to the project root.
+     If nobody is logged in, access-control.js redirects away
+     BEFORE script.js ever gets to draw a single video card.
      ========================================================= -->
-<script type="module">
-  import {
-    auth,
-    waitForUser,
-    isLessonPaid,
-    loadSecureEpisodes,
-    setupIdleLogout
-  } from "../../assets/flp-shared.js";
-
-  const LESSON_ID = window.CURRENT_LESSON.lessonId; // "lesson01"
-  const LOGIN_PAGE = '../../index log.html'; // relative to this nested page
-
-  setupIdleLogout(LOGIN_PAGE, 10 * 1000);
-
-  (async () => {
-    const user = await waitForUser();
-    if (!user) {
-      // Not logged in at all — no point showing a lesson grid.
-      window.location.href = LOGIN_PAGE;
-      return;
-    }
-
-    const paid = await isLessonPaid(user.uid, LESSON_ID);
-    let secureMap = {};
-    if (paid) secureMap = await loadSecureEpisodes(LESSON_ID);
-
-    const episodesWithLinks = window.CURRENT_LESSON.episodes.map(e => ({
-      ...e,
-      youtube: (secureMap && secureMap[e.ep]) ? secureMap[e.ep].youtube : null
-    }));
-
-    if (!paid) {
-      document.getElementById('lockBanner').style.display = 'block';
-    }
-
-    window.renderLessonGrid(episodesWithLinks, paid);
-  })();
-</script>
+<script>window.SITE_ROOT = '../../';</script>
+<script type="module" src="../../assets/access-control.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>
