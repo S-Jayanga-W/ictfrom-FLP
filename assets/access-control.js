@@ -77,7 +77,7 @@ const readyPromise = new Promise((res) => { resolveReady = res; });
 // ---------------------------------------------------------
 // 10-second idle auto-logout (same behaviour as the rest of the site)
 // ---------------------------------------------------------
-const IDLE_LIMIT_MS = 10 * 1000;
+const IDLE_LIMIT_MS = 24 * 60 * 60 * 1000; // 1 day
 let idleTimer = null;
 
 async function forceIdleLogout(){
