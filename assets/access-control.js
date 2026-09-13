@@ -13,6 +13,14 @@
 //   <script>window.SITE_ROOT = '../../';</script>
 //   <script type="module" src="../../assets/access-control.js"></script>
 //
+// To disable the 10s idle auto-logout on a SPECIFIC page only
+// (e.g. admin.html, where the admin may sit reading data without
+// touching the mouse), set this BEFORE the access-control.js
+// script tag:
+//
+//   <script>window.SITE_ROOT = ''; window.FLP_DISABLE_IDLE_LOGOUT = true;</script>
+//   <script type="module" src="assets/access-control.js"></script>
+//
 // Then in your OWN script (must also be type="module" so it runs
 // after this one), you can do:
 //
@@ -57,6 +65,12 @@ const ROOT = (typeof window.SITE_ROOT === 'string') ? window.SITE_ROOT : '';
 const SPLASH_PAGE = ROOT + 'index.html';          // redirects further to the real login page
 const REAL_LOGIN_PAGE = ROOT + 'index log.html';  // has a space in the filename, exactly as on disk
 
+// Per-page opt-out for the idle auto-logout below.
+// Set `window.FLP_DISABLE_IDLE_LOGOUT = true;` BEFORE this script
+// loads (e.g. only inside admin.html) to keep this page's session
+// alive without touching the behaviour of any other page.
+const IDLE_LOGOUT_DISABLED = window.FLP_DISABLE_IDLE_LOGOUT === true;
+
 let resolveReady;
 const readyPromise = new Promise((res) => { resolveReady = res; });
 
@@ -67,24 +81,28 @@ const IDLE_LIMIT_MS = 10 * 1000;
 let idleTimer = null;
 
 async function forceIdleLogout(){
+  if (IDLE_LOGOUT_DISABLED) return;
   if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
   try { await signOut(auth); } catch (e) {}
   window.location.href = REAL_LOGIN_PAGE + '?expired=1';
 }
 
 function resetIdleTimer(){
+  if (IDLE_LOGOUT_DISABLED) return;
   if (idleTimer) clearTimeout(idleTimer);
   if (auth.currentUser) {
     idleTimer = setTimeout(forceIdleLogout, IDLE_LIMIT_MS);
   }
 }
 
-['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach(evt => {
-  window.addEventListener(evt, resetIdleTimer, { passive: true });
-});
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') resetIdleTimer();
-});
+if (!IDLE_LOGOUT_DISABLED) {
+  ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach(evt => {
+    window.addEventListener(evt, resetIdleTimer, { passive: true });
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') resetIdleTimer();
+  });
+}
 
 // ---------------------------------------------------------
 // LOGIN GUARD — if nobody is signed in, leave immediately.
