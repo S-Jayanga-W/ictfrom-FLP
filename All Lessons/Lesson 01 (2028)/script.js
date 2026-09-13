@@ -96,10 +96,15 @@ async function init(){
         ep: e.ep,
         title: e.title,
         unit: e.unit,
-        back: window.location.pathname.split('/').pop() // current page, so "Back" link can return here
+        // Full absolute path back to THIS exact lesson page (not just the
+        // filename) so the "← Back" button on watch.html always lands
+        // back on this episode list, no matter how deep the folder is.
+        back: window.location.pathname + window.location.hash
       });
 
-      window.open(ROOT + 'watch.html?' + params.toString(), '_blank', 'noopener');
+      // Same-tab navigation (no new tab) — replace so the browser's
+      // back button still behaves sensibly.
+      window.location.href = ROOT + 'watch.html?' + params.toString();
     }
 
     thumb.addEventListener('click', goToWatchPage);
