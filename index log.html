@@ -661,11 +661,11 @@
   });
 
   // =========================================================
-  // AUTO-LOGOUT (10 SECOND IDLE LIMIT)
+  // AUTO-LOGOUT (1 DAY IDLE LIMIT)
   // Only matters if a logged-in user is (unusually) sitting on
   // this login page. If nobody is logged in, this does nothing.
   // =========================================================
-  const IDLE_LIMIT_MS = 10 * 1000; // 10 seconds inactivity
+  const IDLE_LIMIT_MS = 24 * 60 * 60 * 1000; // 1 day inactivity
   let idleTimer = null;
 
   async function forceIdleLogout(){
