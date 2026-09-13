@@ -163,6 +163,9 @@
   const ep = getParam('ep');
   const backTo = getParam('back');
 
+  // backTo is a full absolute path (e.g. "/ictfrom-FLP/All Lessons/Lesson 01 (2028)/index.html")
+  // sent by script.js, so this always returns to the exact lesson page the
+  // student came from — not just the site's root Home page.
   document.getElementById('backLink').href = backTo || 'Home.html';
 
   const statusEl = document.getElementById('status');
