@@ -26,6 +26,7 @@ const grid = document.getElementById('grid');
 
 // Pulls the 11-character video ID out of any common YouTube URL format,
 // or just returns the string as-is if it's already a bare ID.
+// (Kept here too, harmless if unused — extraction now also happens on watch.html)
 function extractYouTubeId(input){
   if (!input) return null;
   const match = input.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
@@ -50,7 +51,7 @@ async function init(){
     card.innerHTML = `
       <div class="ep-tag">EP ${e.ep}</div>
       <div class="thumb" data-idx="${i}">
-        <button class="play-btn" title="${unlocked ? 'Watch on YouTube' : 'Locked — contact admin'}">${unlocked ? playIcon : lockIcon}</button>
+        <button class="play-btn" title="${unlocked ? 'Watch' : 'Locked — contact admin'}">${unlocked ? playIcon : lockIcon}</button>
         <span class="duration">${e.duration}</span>
         ${unlocked ? '' : '<div class="lock-badge">🔒 Locked</div>'}
       </div>
@@ -77,27 +78,34 @@ async function init(){
     }
 
     // Click anywhere on the thumbnail (or the play button):
-    //  - if unlocked, fetch the real link from Firebase and open it
+    //  - if unlocked, send the student to our own watch.html page
+    //    (which embeds the video and re-checks access via Firebase)
     //  - if locked, tell the student instead of opening anything
-    async function goToYouTube(){
+    function goToWatchPage(){
       if (!unlocked) {
         alert('🔒 මෙම විඩියෝව තවම Lock වී ඇත.\nUnlock කරගැනීමට admin ව සම්බන්ධ කරගන්න.');
         return;
       }
-      const link = await window.FLP.getVideoUrl(LESSON_ID, e.ep);
-      const videoId = extractYouTubeId(link);
-      const watchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : link;
-      if (!watchUrl) {
-        alert('No valid YouTube link set for this episode yet.');
-        return;
-      }
-      window.open(watchUrl, '_blank', 'noopener');
+
+      // Path from THIS lesson folder back up to the project root, where
+      // watch.html lives (e.g. "All Lessons/Lesson 01 (2028)/" -> "../../").
+      const ROOT = (typeof window.SITE_ROOT === 'string') ? window.SITE_ROOT : '../../';
+
+      const params = new URLSearchParams({
+        lesson: LESSON_ID,
+        ep: e.ep,
+        title: e.title,
+        unit: e.unit,
+        back: window.location.pathname.split('/').pop() // current page, so "Back" link can return here
+      });
+
+      window.open(ROOT + 'watch.html?' + params.toString(), '_blank', 'noopener');
     }
 
-    thumb.addEventListener('click', goToYouTube);
+    thumb.addEventListener('click', goToWatchPage);
     btn.addEventListener('click', (ev) => {
       ev.stopPropagation();
-      goToYouTube();
+      goToWatchPage();
     });
   });
 
