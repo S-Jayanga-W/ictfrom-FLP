@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch | ictfrom | Free Learn Pack (FLP)</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root{
+    --black:#0a0a0a;
+    --panel:#141110;
+    --panel2:#1b1615;
+    --line:#2a2422;
+    --red:#e5121a;
+    --red-dim:#7a0c11;
+    --white:#f5f5f5;
+    --grey:#8a8a8a;
+    --green:#2ecc71;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Consolas','Courier New',monospace;
+    background:var(--black);
+    color:var(--white);
+    min-height:100vh;
+  }
+  a{ color:inherit; }
+
+  header.topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 24px; border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:rgba(10,10,10,.92); backdrop-filter:blur(6px); z-index:10;
+  }
+  header.topbar .brand{ display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:1px; }
+  header.topbar .brand img{ width:30px; height:30px; border-radius:6px; }
+  header.topbar .brand span{ color:var(--red); }
+  header.topbar a.back{
+    display:flex; align-items:center; gap:6px;
+    text-decoration:none; color:var(--grey); font-size:13px;
+    border:1px solid var(--line); padding:8px 14px; border-radius:6px; transition:.2s;
+  }
+  header.topbar a.back:hover{ border-color:var(--red); color:var(--white); }
+
+  #status{
+    text-align:center; color:var(--grey); margin-top:120px; font-size:14px; line-height:1.8;
+  }
+  .spinner{
+    width:34px; height:34px; border-radius:50%;
+    border:3px solid var(--line); border-top-color:var(--red);
+    margin:0 auto 16px; animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .lock-box{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:44px 26px; text-align:center; max-width:440px; margin:100px auto 0;
+    animation:fadeUp .4s ease;
+  }
+  .lock-box .icon{ font-size:38px; margin-bottom:12px; }
+  .lock-box .title{ font-size:15px; font-weight:700; }
+  .lock-box p{ color:var(--grey); font-size:13px; margin-top:10px; line-height:1.7; }
+  .lock-box a.btn{
+    display:inline-block; margin-top:20px; text-decoration:none;
+    background:var(--red); color:#fff; padding:11px 22px; border-radius:8px;
+    font-size:13px; font-weight:700; transition:.2s;
+  }
+  .lock-box a.btn:hover{ background:#c40e15; }
+
+  @keyframes fadeUp{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:translateY(0);} }
+
+  main{
+    max-width:1040px; margin:0 auto; padding:26px 20px 60px;
+  }
+
+  .player-wrap{ display:none; animation:fadeUp .4s ease; }
+  .player-wrap.ready{ display:block; }
+
+  .video-frame{
+    position:relative; width:100%; padding-top:56.25%;
+    background:#000; border-radius:14px; overflow:hidden;
+    border:1px solid var(--line);
+    box-shadow:0 20px 50px -20px rgba(0,0,0,.7);
+  }
+  .video-frame iframe{
+    position:absolute; inset:0; width:100%; height:100%; border:0;
+  }
+
+  .meta{
+    margin-top:22px; padding-bottom:20px; border-bottom:1px solid var(--line);
+    display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  }
+  .meta .left{ flex:1; min-width:240px; }
+  .meta .ep-tag{
+    display:inline-block; color:var(--red); font-size:11px; font-weight:700;
+    letter-spacing:1.5px; border:1px solid var(--red-dim); padding:4px 10px;
+    border-radius:20px; margin-bottom:10px; background:rgba(229,18,26,.08);
+  }
+  .meta h1{ font-size:20px; line-height:1.4; margin-bottom:6px; }
+  .meta .sub{ color:var(--grey); font-size:12px; }
+
+  .badge-live{
+    display:flex; align-items:center; gap:6px; color:var(--green); font-size:12px;
+    border:1px solid #1c5c38; padding:6px 12px; border-radius:20px; background:rgba(46,204,113,.08);
+    white-space:nowrap;
+  }
+  .badge-live .dot{ width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulse 1.4s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+  .note-box{
+    margin-top:18px; background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:14px 16px; font-size:12px; color:var(--grey); line-height:1.7;
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><img src="logo.png" alt=""> ictfrom | <span>WATCH</span></div>
+  <a href="#" class="back" id="backLink">← Back to lesson</a>
+</header>
+
+<main>
+  <div id="status">
+    <div class="spinner"></div>
+    Loading video…
+  </div>
+
+  <div class="player-wrap" id="playerWrap">
+    <div class="video-frame">
+      <iframe id="ytFrame" src="" title="Lesson video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+
+    <div class="meta">
+      <div class="left">
+        <div class="ep-tag" id="epTag"></div>
+        <h1 id="epTitle"></h1>
+        <div class="sub" id="epUnit"></div>
+      </div>
+      <div class="badge-live"><span class="dot"></span> Unlocked for you</div>
+    </div>
+
+    <div class="note-box">🔒 This video is playable because your account has been unlocked for this episode. Access is checked live from the server each time this page loads.</div>
+  </div>
+</main>
+
+<script>window.SITE_ROOT = '';</script>
+<script type="module" src="assets/access-control.js"></script>
+
+<script type="module">
+  function getParam(name){
+    return new URLSearchParams(window.location.search).get(name);
+  }
+
+  function extractYouTubeId(input){
+    if (!input) return null;
+    const match = input.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
+    if (match) return match[1];
+    if (/^[A-Za-z0-9_-]{11}$/.test(input.trim())) return input.trim();
+    return null;
+  }
+
+  const lessonId = getParam('lesson');
+  const ep = getParam('ep');
+  const backTo = getParam('back');
+
+  document.getElementById('backLink').href = backTo || 'Home.html';
+
+  const statusEl = document.getElementById('status');
+
+  function showLocked(){
+    statusEl.innerHTML = `
+      <div class="lock-box">
+        <div class="icon">🔒</div>
+        <div class="title">This episode is locked</div>
+        <p>Unlock කරගැනීමට admin ව සම්බන්ධ කරගන්න.</p>
+        <a class="btn" href="${backTo || 'Home.html'}">← Back to lesson</a>
+      </div>
+    `;
+  }
+
+  if (!lessonId || !ep) {
+    statusEl.innerHTML = `
+      <div class="lock-box">
+        <div class="icon">⚠️</div>
+        <div class="title">Missing video information</div>
+        <p>This link is missing the lesson or episode details.</p>
+        <a class="btn" href="Home.html">← Go home</a>
+      </div>
+    `;
+  } else {
+    await window.FLP.ready;
+
+    const access = await window.FLP.getLessonAccess(lessonId);
+    const unlocked = access.full || !!access.episodes[ep];
+
+    if (!unlocked) {
+      showLocked();
+    } else {
+      const link = await window.FLP.getVideoUrl(lessonId, ep);
+      const videoId = extractYouTubeId(link);
+
+      if (!videoId) {
+        statusEl.innerHTML = `
+          <div class="lock-box">
+            <div class="icon">📹</div>
+            <div class="title">No video set yet</div>
+            <p>An admin hasn't added a video link for this episode yet.</p>
+            <a class="btn" href="${backTo || 'Home.html'}">← Back to lesson</a>
+          </div>
+        `;
+      } else {
+        document.getElementById('ytFrame').src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
+        document.getElementById('epTag').textContent = 'EP ' + ep;
+        document.getElementById('epTitle').textContent = decodeURIComponent(getParam('title') || '');
+        document.getElementById('epUnit').textContent = decodeURIComponent(getParam('unit') || '');
+        statusEl.style.display = 'none';
+        document.getElementById('playerWrap').classList.add('ready');
+      }
+    }
+  }
+</script>
+</body>
+</html>
