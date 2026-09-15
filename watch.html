@@ -18,13 +18,44 @@
     --green:#2ecc71;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{ height:100%; }
   body{
     font-family:'Consolas','Courier New',monospace;
     background:var(--black);
     color:var(--white);
     min-height:100vh;
+    position:relative;
+    overflow-x:hidden;
   }
   a{ color:inherit; }
+
+  /* ===== Animated background ===== */
+  #bgCanvas{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:0;
+    pointer-events:none;
+    display:block;
+  }
+  .bg-glow{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background:
+      radial-gradient(600px 400px at 15% 10%, rgba(229,18,26,.12), transparent 60%),
+      radial-gradient(700px 500px at 85% 30%, rgba(229,18,26,.08), transparent 60%),
+      radial-gradient(800px 600px at 50% 100%, rgba(229,18,26,.10), transparent 60%);
+    animation:bgShift 16s ease-in-out infinite alternate;
+  }
+  @keyframes bgShift{
+    0%{ filter:hue-rotate(0deg) brightness(1); }
+    100%{ filter:hue-rotate(8deg) brightness(1.08); }
+  }
+
+  header.topbar, main{ position:relative; z-index:1; }
 
   header.topbar{
     display:flex; align-items:center; justify-content:space-between;
@@ -110,9 +141,46 @@
     margin-top:18px; background:var(--panel); border:1px solid var(--line); border-radius:10px;
     padding:14px 16px; font-size:12px; color:var(--grey); line-height:1.7;
   }
+
+  /* ===== My Notes section ===== */
+  .my-notes{
+    margin-top:20px; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:18px 18px 16px; animation:fadeUp .4s ease;
+  }
+  .my-notes .notes-head{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
+  }
+  .my-notes .notes-head h2{
+    font-size:13px; letter-spacing:1px; color:var(--white);
+    display:flex; align-items:center; gap:8px;
+  }
+  .my-notes .notes-head h2::before{ content:"📝"; font-size:14px; }
+  .my-notes textarea{
+    width:100%; min-height:110px; resize:vertical;
+    background:var(--panel2); border:1px solid var(--line); border-radius:8px;
+    color:var(--white); font-family:inherit; font-size:13px; line-height:1.6;
+    padding:12px; outline:none; transition:border-color .2s;
+  }
+  .my-notes textarea:focus{ border-color:var(--red-dim); }
+  .my-notes .notes-foot{
+    display:flex; align-items:center; justify-content:space-between; margin-top:10px; gap:10px; flex-wrap:wrap;
+  }
+  .my-notes .save-btn{
+    background:var(--red); color:#fff; border:none; padding:9px 18px; border-radius:8px;
+    font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; transition:.2s;
+  }
+  .my-notes .save-btn:hover{ background:#c40e15; }
+  .my-notes .save-status{
+    font-size:11px; color:var(--grey); transition:opacity .3s; opacity:0;
+  }
+  .my-notes .save-status.show{ opacity:1; }
+  .my-notes .save-status.ok{ color:var(--green); }
 </style>
 </head>
 <body>
+
+<canvas id="bgCanvas"></canvas>
+<div class="bg-glow"></div>
 
 <header class="topbar">
   <div class="brand"><img src="logo.png" alt=""> ictfrom | <span>WATCH</span></div>
@@ -140,11 +208,89 @@
     </div>
 
     <div class="note-box">🔒 This video is playable because your account has been unlocked for this episode. Access is checked live from the server each time this page loads.</div>
+
+    <div class="my-notes" id="myNotes">
+      <div class="notes-head">
+        <h2>MY NOTES</h2>
+      </div>
+      <textarea id="notesArea" placeholder="Type your notes for this episode here... (saved automatically on this device)"></textarea>
+      <div class="notes-foot">
+        <button class="save-btn" id="saveNoteBtn">Save note</button>
+        <span class="save-status" id="saveStatus"></span>
+      </div>
+    </div>
   </div>
 </main>
 
 <script>window.SITE_ROOT = '';</script>
 <script type="module" src="assets/access-control.js"></script>
+
+<script>
+  /* ===== Lightweight animated particle background ===== */
+  (function(){
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, particles;
+    const COUNT = 55;
+    const COLOR = '229,18,26'; // matches --red
+
+    function resize(){
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+
+    function makeParticles(){
+      particles = Array.from({length: COUNT}, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 1.8 + 0.6,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+        a: Math.random() * 0.5 + 0.15
+      }));
+    }
+
+    function step(){
+      ctx.clearRect(0, 0, w, h);
+
+      for (const p of particles){
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+        if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${COLOR},${p.a})`;
+        ctx.fill();
+      }
+
+      // faint connecting lines for nearby particles
+      for (let i = 0; i < particles.length; i++){
+        for (let j = i + 1; j < particles.length; j++){
+          const a = particles[i], b = particles[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 120){
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(${COLOR},${0.08 * (1 - dist/120)})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    window.addEventListener('resize', () => { resize(); makeParticles(); });
+    resize();
+    makeParticles();
+    requestAnimationFrame(step);
+  })();
+</script>
 
 <script type="module">
   function getParam(name){
@@ -179,6 +325,40 @@
         <a class="btn" href="${backTo || 'Home.html'}">← Back to lesson</a>
       </div>
     `;
+  }
+
+  function setupNotes(lessonId, ep){
+    const key = `flp_note_${lessonId}_${ep}`;
+    const area = document.getElementById('notesArea');
+    const btn = document.getElementById('saveNoteBtn');
+    const status = document.getElementById('saveStatus');
+
+    const saved = localStorage.getItem(key);
+    if (saved) area.value = saved;
+
+    let statusTimer = null;
+    function flashStatus(text, ok){
+      status.textContent = text;
+      status.classList.toggle('ok', !!ok);
+      status.classList.add('show');
+      clearTimeout(statusTimer);
+      statusTimer = setTimeout(() => status.classList.remove('show'), 2000);
+    }
+
+    btn.addEventListener('click', () => {
+      localStorage.setItem(key, area.value);
+      flashStatus('✓ Saved on this device', true);
+    });
+
+    // autosave a little while after typing stops
+    let typingTimer = null;
+    area.addEventListener('input', () => {
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => {
+        localStorage.setItem(key, area.value);
+        flashStatus('Autosaved', false);
+      }, 1200);
+    });
   }
 
   if (!lessonId || !ep) {
@@ -218,6 +398,7 @@
         document.getElementById('epUnit').textContent = decodeURIComponent(getParam('unit') || '');
         statusEl.style.display = 'none';
         document.getElementById('playerWrap').classList.add('ready');
+        setupNotes(lessonId, ep);
       }
     }
   }
