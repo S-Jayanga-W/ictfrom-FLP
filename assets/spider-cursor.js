@@ -2,9 +2,12 @@
    SPIDER-WEB CURSOR EFFECT
    ictfrom | FLP — red/white theme
    - Threads connect near the mouse pointer (web network)
-   - Click / tap fires a "web-shoot" line (Spider-Man style)
+   - Click / tap: a spider drops down on a thread from the
+     top of the screen to the click point, hangs a moment,
+     then climbs back up.
    Drop this file in /assets/spider-cursor.js and add
    <script src="assets/spider-cursor.js"></script>
+   (or "../../assets/spider-cursor.js" from a nested page)
    right before </body> on every page.
    ========================================================= */
 (function () {
@@ -73,36 +76,127 @@
   }
   for (let i = 0; i < NODE_COUNT; i++) nodes.push(makeNode());
 
-  // ---------------- click web-shoot lines ----------------
-  const shots = []; // {fromX, fromY, toX, toY, t, dur}
-
-  function fireWebShot(x, y) {
-    // shoot from the two nearest screen corners (like two wrists), spidey-style
-    const corners = [
-      { x: 0, y: 0 }, { x: W, y: 0 }, { x: 0, y: H }, { x: W, y: H }
-    ];
-    corners.sort((a, b) => dist(a, { x, y }) - dist(b, { x, y }));
-    const origin = corners[0];
-
-    shots.push({
-      fromX: origin.x, fromY: origin.y,
-      toX: x, toY: y,
-      start: performance.now(),
-      dur: 260
-    });
-
-    // little impact burst
-    shots.push({ burst: true, x, y, start: performance.now(), dur: 420 });
-  }
-
   function dist(a, b) {
     return Math.hypot(a.x - b.x, a.y - b.y);
   }
 
-  window.addEventListener("click", (e) => fireWebShot(e.clientX, e.clientY));
+  // ---------------- click: spider drops down on a thread ----------------
+  const spiders = []; // active drop-in spiders
+
+  function fireSpiderDrop(x, y) {
+    // cap concurrent spiders so rapid clicking doesn't pile up
+    if (spiders.length >= 4) spiders.shift();
+
+    spiders.push({
+      x: x,
+      targetY: y,
+      dropStart: performance.now(),
+      dropDur: 420 + Math.random() * 120,
+      holdDur: 480 + Math.random() * 260,
+      retractDur: 340,
+      swingSeed: Math.random() * Math.PI * 2,
+      phase: "drop" // drop -> hold -> retract -> done
+    });
+  }
+
+  window.addEventListener("click", (e) => fireSpiderDrop(e.clientX, e.clientY));
   window.addEventListener("touchstart", (e) => {
-    if (e.touches && e.touches[0]) fireWebShot(e.touches[0].clientX, e.touches[0].clientY);
+    if (e.touches && e.touches[0]) fireSpiderDrop(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: true });
+
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  function easeInCubic(t) { return t * t * t; }
+
+  // small decorative web anchor, drawn once at the top of each thread
+  function drawWebAnchor(cx, cy, scale) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.strokeStyle = `rgba(${WHITE},0.8)`;
+    ctx.lineWidth = 1 * scale;
+    ctx.lineCap = "round";
+    const R = 11 * scale;
+    const spokes = 6;
+    // radial spokes
+    for (let i = 0; i < spokes; i++) {
+      const a = (i / spokes) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(a) * R, Math.sin(a) * R * 0.55 - R * 0.15);
+      ctx.stroke();
+    }
+    // concentric rings
+    for (let ring = 1; ring <= 2; ring++) {
+      ctx.beginPath();
+      for (let i = 0; i <= spokes; i++) {
+        const a = (i / spokes) * Math.PI * 2;
+        const rr = R * (ring / 2);
+        const px = Math.cos(a) * rr;
+        const py = Math.sin(a) * rr * 0.55 - R * 0.15 * (ring / 2);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // a proper hanging spider: glossy red body + 8 long splayed legs,
+  // styled after a classic dangling-spider silhouette
+  function drawSpider(cx, cy, scale, swing) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(swing * 0.3);
+
+    const legColor = `rgba(${RED},0.95)`;
+
+    // legs: 4 pairs, each a 3-segment bent line that splays outward then
+    // curls slightly inward at the foot, like the reference dangling pose
+    ctx.strokeStyle = legColor;
+    ctx.lineCap = "round";
+    for (let side = -1; side <= 1; side += 2) {
+      for (let i = 0; i < 4; i++) {
+        const spread = (i + 1) / 4;               // 0.25 -> 1
+        const upBias = i < 2 ? 1 : -0.4;           // front legs angle up, back legs angle down
+        const hipX = side * 2.2 * scale;
+        const hipY = -1 * scale + i * 2.6 * scale;
+
+        const kneeX = side * (10 + spread * 6) * scale;
+        const kneeY = hipY - 3 * scale * upBias * 0.5;
+
+        const footX = side * (7 + spread * 4) * scale;
+        const footY = kneeY + (9 + spread * 5) * scale;
+
+        ctx.lineWidth = (2.1 - i * 0.25) * scale;
+        ctx.beginPath();
+        ctx.moveTo(hipX * 0.3, hipY);
+        ctx.quadraticCurveTo(kneeX, kneeY, footX, footY);
+        ctx.stroke();
+      }
+    }
+
+    // cephalothorax + abdomen as one glossy teardrop body
+    const bodyGrad = ctx.createRadialGradient(-1.5 * scale, -2 * scale, 0.6 * scale, 0, 2 * scale, 9 * scale);
+    bodyGrad.addColorStop(0, "rgba(255,140,120,1)");
+    bodyGrad.addColorStop(0.45, `rgba(${RED},1)`);
+    bodyGrad.addColorStop(1, "rgba(150,15,12,1)");
+
+    ctx.beginPath();
+    ctx.ellipse(0, 3.5 * scale, 4.6 * scale, 6.4 * scale, 0, 0, Math.PI * 2);
+    ctx.fillStyle = bodyGrad;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.ellipse(0, -3.2 * scale, 3.4 * scale, 3.7 * scale, 0, 0, Math.PI * 2);
+    ctx.fillStyle = bodyGrad;
+    ctx.fill();
+
+    // subtle highlight for the glossy look
+    ctx.beginPath();
+    ctx.ellipse(-1.4 * scale, -3.6 * scale, 1.1 * scale, 1.5 * scale, -0.4, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    ctx.fill();
+
+    ctx.restore();
+  }
 
   // ---------------- draw loop ----------------
   function draw(now) {
@@ -112,7 +206,7 @@
     const idleFor = now - lastMove;
     const cursorAlpha = pointer.active ? Math.max(0, 1 - idleFor / 4000) : 0;
 
-    // update + draw nodes
+    // update + draw ambient web nodes
     for (const n of nodes) {
       n.x += n.vx;
       n.y += n.vy;
@@ -142,7 +236,7 @@
       }
     }
 
-    // node-to-cursor web threads (the spider-web-follows-mouse part)
+    // node-to-cursor web threads (spider-web-follows-mouse)
     if (cursorAlpha > 0) {
       for (const n of nodes) {
         const d = dist(n, pointer);
@@ -156,7 +250,6 @@
           ctx.stroke();
         }
       }
-      // cursor glow node
       const g = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 22);
       g.addColorStop(0, `rgba(${RED},${0.55 * cursorAlpha})`);
       g.addColorStop(1, `rgba(${RED},0)`);
@@ -171,50 +264,59 @@
       ctx.fill();
     }
 
-    // click web-shoot lines + burst
-    for (let i = shots.length - 1; i >= 0; i--) {
-      const s = shots[i];
-      const t = (now - s.start) / s.dur;
-      if (t >= 1) { shots.splice(i, 1); continue; }
+    // ---- click spiders: drop from top, hang & swing, climb back up ----
+    for (let i = spiders.length - 1; i >= 0; i--) {
+      const s = spiders[i];
+      const topY = -18;
 
-      if (s.burst) {
-        const rad = 4 + t * 26;
-        const alpha = (1 - t) * 0.8;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, rad, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(${RED},${alpha})`;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // small radiating strands
-        for (let k = 0; k < 6; k++) {
-          const ang = (k / 6) * Math.PI * 2;
-          const len = rad * 0.9;
-          ctx.beginPath();
-          ctx.moveTo(s.x, s.y);
-          ctx.lineTo(s.x + Math.cos(ang) * len, s.y + Math.sin(ang) * len);
-          ctx.strokeStyle = `rgba(${WHITE},${alpha * 0.6})`;
-          ctx.lineWidth = 1;
-          ctx.stroke();
+      if (s.phase === "drop") {
+        const t = Math.min((now - s.dropStart) / s.dropDur, 1);
+        s.spiderY = topY + (s.targetY - topY) * easeOutCubic(t);
+        if (t >= 1) {
+          s.phase = "hold";
+          s.holdStart = now;
+          s.spiderY = s.targetY;
         }
-      } else {
-        const ease = 1 - Math.pow(1 - Math.min(t * 1.4, 1), 3);
-        const cx = s.fromX + (s.toX - s.fromX) * ease;
-        const cy = s.fromY + (s.toY - s.fromY) * ease;
-        const alpha = 1 - t;
-
-        ctx.beginPath();
-        ctx.moveTo(s.fromX, s.fromY);
-        ctx.lineTo(cx, cy);
-        ctx.strokeStyle = `rgba(${RED},${alpha * 0.9})`;
-        ctx.lineWidth = 1.6;
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${WHITE},${alpha})`;
-        ctx.fill();
+      } else if (s.phase === "hold") {
+        s.spiderY = s.targetY;
+        if (now - s.holdStart >= s.holdDur) {
+          s.phase = "retract";
+          s.retractStart = now;
+        }
+      } else if (s.phase === "retract") {
+        const t = Math.min((now - s.retractStart) / s.retractDur, 1);
+        s.spiderY = s.targetY + (topY - s.targetY) * easeInCubic(t);
+        if (t >= 1) {
+          spiders.splice(i, 1);
+          continue;
+        }
       }
+
+      // gentle pendulum swing, stronger while hanging, settling over time
+      const elapsed = (now - s.dropStart) / 1000;
+      const swingDamp = s.phase === "retract" ? 0.15 : Math.max(0.15, 1 - elapsed * 0.6);
+      const swing = Math.sin(elapsed * 4.5 + s.swingSeed) * 0.5 * swingDamp;
+      const swingX = s.x + swing * 14;
+
+      // thread
+      ctx.beginPath();
+      ctx.moveTo(s.x + swing * 2, topY);
+      ctx.lineTo(swingX, s.spiderY);
+      ctx.strokeStyle = `rgba(${WHITE},0.55)`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // small web anchor where the thread meets the top of the screen
+      const anchorFade = Math.min((now - s.dropStart) / 200, 1);
+      ctx.globalAlpha = anchorFade * (s.phase === "retract" ? 1 - (now - s.retractStart) / s.retractDur : 1);
+      drawWebAnchor(s.x + swing * 2, topY + 8, 1.1);
+      ctx.globalAlpha = 1;
+
+      // fade spider in/out slightly at the very start/end
+      const fadeIn = s.phase === "drop" ? Math.min((now - s.dropStart) / 120, 1) : 1;
+      ctx.globalAlpha = fadeIn;
+      drawSpider(swingX, s.spiderY, 2, swing);
+      ctx.globalAlpha = 1;
     }
 
     requestAnimationFrame(draw);
