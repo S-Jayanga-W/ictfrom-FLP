@@ -44,25 +44,9 @@
   window.addEventListener("resize", resize);
   resize();
 
-  // ---------------- pointer tracking ----------------
-  const pointer = { x: W / 2, y: H / 2, active: false };
-  let lastMove = 0;
-
-  function setPointer(x, y) {
-    pointer.x = x;
-    pointer.y = y;
-    pointer.active = true;
-    lastMove = performance.now();
-  }
-  window.addEventListener("mousemove", (e) => setPointer(e.clientX, e.clientY), { passive: true });
-  window.addEventListener("touchmove", (e) => {
-    if (e.touches && e.touches[0]) setPointer(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: true });
-
-  // ---------------- floating web nodes (network around cursor) ----------------
+  // ---------------- floating ambient web nodes (background decoration) ----------------
   const NODE_COUNT = window.innerWidth < 700 ? 16 : 28;
   const LINK_DIST = 130;
-  const CURSOR_LINK_DIST = 190;
   const nodes = [];
 
   function makeNode() {
@@ -202,10 +186,6 @@
   function draw(now) {
     ctx.clearRect(0, 0, W, H);
 
-    // idle fade: if mouse hasn't moved in a while, ease pointer influence down
-    const idleFor = now - lastMove;
-    const cursorAlpha = pointer.active ? Math.max(0, 1 - idleFor / 4000) : 0;
-
     // update + draw ambient web nodes
     for (const n of nodes) {
       n.x += n.vx;
@@ -234,34 +214,6 @@
           ctx.stroke();
         }
       }
-    }
-
-    // node-to-cursor web threads (spider-web-follows-mouse)
-    if (cursorAlpha > 0) {
-      for (const n of nodes) {
-        const d = dist(n, pointer);
-        if (d < CURSOR_LINK_DIST) {
-          const alpha = (1 - d / CURSOR_LINK_DIST) * 0.55 * cursorAlpha;
-          ctx.beginPath();
-          ctx.moveTo(n.x, n.y);
-          ctx.lineTo(pointer.x, pointer.y);
-          ctx.strokeStyle = `rgba(${RED},${alpha})`;
-          ctx.lineWidth = 0.9;
-          ctx.stroke();
-        }
-      }
-      const g = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 22);
-      g.addColorStop(0, `rgba(${RED},${0.55 * cursorAlpha})`);
-      g.addColorStop(1, `rgba(${RED},0)`);
-      ctx.beginPath();
-      ctx.fillStyle = g;
-      ctx.arc(pointer.x, pointer.y, 22, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(pointer.x, pointer.y, 2.6, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${RED},${0.9 * cursorAlpha})`;
-      ctx.fill();
     }
 
     // ---- click spiders: drop from top, hang & swing, climb back up ----
