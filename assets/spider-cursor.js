@@ -83,10 +83,31 @@
     });
   }
 
-  window.addEventListener("click", (e) => fireSpiderDrop(e.clientX, e.clientY));
-  window.addEventListener("touchstart", (e) => {
-    if (e.touches && e.touches[0]) fireSpiderDrop(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: true });
+  // ---------------- click: spawn the spider, and (for real links) delay
+  // navigation just long enough for the drop animation to actually be seen ----------------
+  const NAV_DELAY = 480; // ms — roughly the drop animation's duration
+
+  function handleActivate(x, y, e) {
+    fireSpiderDrop(x, y);
+
+    const link = e.target.closest && e.target.closest("a[href]");
+    if (!link) return;
+
+    const href = link.getAttribute("href");
+    const isHash = href && href.trim().startsWith("#");
+    const isJsHref = href && href.trim().toLowerCase().startsWith("javascript:");
+    const opensNewTab = link.target && link.target !== "_self";
+    const isDownload = link.hasAttribute("download");
+    const modifiedClick = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button !== 0);
+
+    if (!href || isHash || isJsHref || opensNewTab || isDownload || modifiedClick) return;
+
+    // let the drop play, then navigate ourselves
+    e.preventDefault();
+    setTimeout(() => { window.location.href = href; }, NAV_DELAY);
+  }
+
+  window.addEventListener("click", (e) => handleActivate(e.clientX, e.clientY, e));
 
   function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
   function easeInCubic(t) { return t * t * t; }
