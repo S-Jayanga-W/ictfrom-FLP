@@ -81,7 +81,12 @@ async function init(){
     //  - if unlocked, send the student to our own watch.html page
     //    (which embeds the video and re-checks access via Firebase)
     //  - if locked, tell the student instead of opening anything
-    function goToWatchPage(){
+    //
+    // NOTE: navigation now goes through window.FLP_spiderNavigate (defined
+    // in assets/spider-cursor.js) so the click-spider animation actually
+    // gets to play before we jump to watch.html. If that helper isn't
+    // present for some reason, we fall back to navigating immediately.
+    function goToWatchPage(ev){
       if (!unlocked) {
         alert('🔒 මෙම විඩියෝව තවම Lock වී ඇත.\nUnlock කරගැනීමට admin ව සම්බන්ධ කරගන්න.');
         return;
@@ -102,15 +107,21 @@ async function init(){
         back: window.location.pathname + window.location.hash
       });
 
-      // Same-tab navigation (no new tab) — replace so the browser's
-      // back button still behaves sensibly.
-      window.location.href = ROOT + 'watch.html?' + params.toString();
+      const targetUrl = ROOT + 'watch.html?' + params.toString();
+
+      if (typeof window.FLP_spiderNavigate === 'function') {
+        // Let the spider drop, then navigate (handled inside the helper).
+        window.FLP_spiderNavigate(targetUrl, ev);
+      } else {
+        // spider-cursor.js not loaded on this page — just go straight there.
+        window.location.href = targetUrl;
+      }
     }
 
     thumb.addEventListener('click', goToWatchPage);
     btn.addEventListener('click', (ev) => {
       ev.stopPropagation();
-      goToWatchPage();
+      goToWatchPage(ev);
     });
   });
 
