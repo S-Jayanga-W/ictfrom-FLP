@@ -21,7 +21,7 @@ const WORKER_URL = "https://calm-hall-4de2ictfrom-worker.sithijawa2009.workers.d
       font-family:'Consolas','Courier New',monospace;
     }
     #flp-ai-fab{
-      width:58px; height:58px; border-radius:50%;
+      width:68px; height:68px; border-radius:50%;
       background:radial-gradient(circle at 32% 28%, #1c1414, #0a0808);
       border:1px solid rgba(230,35,30,.45);
       cursor:pointer;
@@ -33,9 +33,9 @@ const WORKER_URL = "https://calm-hall-4de2ictfrom-worker.sithijawa2009.workers.d
       transform:scale(1.07);
       box-shadow:0 12px 34px -6px rgba(229,18,26,.75);
     }
-    #flp-ai-fab svg{ width:26px; height:26px; display:block; }
+    #flp-ai-fab svg{ width:34px; height:34px; display:block; }
     #flp-ai-panel{
-      position:absolute; right:0; bottom:74px;
+      position:absolute; right:0; bottom:84px;
       width:340px; max-width:88vw; height:460px; max-height:70vh;
       background:#141110; border:1px solid #2a2422; border-radius:14px;
       display:none; flex-direction:column; overflow:hidden;
