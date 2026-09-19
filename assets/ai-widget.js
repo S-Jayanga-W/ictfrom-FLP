@@ -21,15 +21,21 @@ const WORKER_URL = "https://calm-hall-4de2ictfrom-worker.sithijawa2009.workers.d
       font-family:'Consolas','Courier New',monospace;
     }
     #flp-ai-fab{
-      width:56px; height:56px; border-radius:50%;
-      background:#e5121a; color:#fff; border:none; cursor:pointer;
+      width:58px; height:58px; border-radius:50%;
+      background:radial-gradient(circle at 32% 28%, #1c1414, #0a0808);
+      border:1px solid rgba(230,35,30,.45);
+      cursor:pointer;
       display:flex; align-items:center; justify-content:center;
-      font-size:24px; box-shadow:0 10px 30px -8px rgba(229,18,26,.6);
-      transition:transform .2s;
+      box-shadow:0 10px 30px -8px rgba(229,18,26,.55), 0 0 0 0 rgba(229,18,26,.4);
+      transition:transform .2s, box-shadow .25s;
     }
-    #flp-ai-fab:hover{ transform:scale(1.06); }
+    #flp-ai-fab:hover{
+      transform:scale(1.07);
+      box-shadow:0 12px 34px -6px rgba(229,18,26,.75);
+    }
+    #flp-ai-fab svg{ width:26px; height:26px; display:block; }
     #flp-ai-panel{
-      position:absolute; right:0; bottom:70px;
+      position:absolute; right:0; bottom:74px;
       width:340px; max-width:88vw; height:460px; max-height:70vh;
       background:#141110; border:1px solid #2a2422; border-radius:14px;
       display:none; flex-direction:column; overflow:hidden;
@@ -43,8 +49,12 @@ const WORKER_URL = "https://calm-hall-4de2ictfrom-worker.sithijawa2009.workers.d
       display:flex; align-items:center; justify-content:space-between;
       background:rgba(229,18,26,.06);
     }
-    #flp-ai-head .t{ color:#f5f5f5; font-size:13px; font-weight:700; letter-spacing:.5px; }
+    #flp-ai-head .t{
+      color:#f5f5f5; font-size:13px; font-weight:700; letter-spacing:.5px;
+      display:flex; align-items:center; gap:8px;
+    }
     #flp-ai-head .t span{ color:#e5121a; }
+    #flp-ai-head .t svg{ width:15px; height:15px; flex-shrink:0; }
     #flp-ai-close{ background:none; border:none; color:#8a8a8a; font-size:16px; cursor:pointer; }
     #flp-ai-body{
       flex:1; overflow-y:auto; padding:12px 14px; display:flex; flex-direction:column; gap:10px;
@@ -69,12 +79,29 @@ const WORKER_URL = "https://calm-hall-4de2ictfrom-worker.sithijawa2009.workers.d
   `;
   document.head.appendChild(style);
 
+  // Reusable "AI sparkle" icon — a 4-point glint/star, filled with a
+  // red gradient, standing in for the old 💬 emoji. Generic "auto-awesome"
+  // style sparkle shape, not any brand's specific logo mark.
+  const sparkleSvg = (gradientId) => `
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="${gradientId}" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ff6a5e"/>
+          <stop offset="55%" stop-color="#e6231e"/>
+          <stop offset="100%" stop-color="#8f0f0c"/>
+        </linearGradient>
+      </defs>
+      <path fill="url(#${gradientId})" d="M11.5 2.5c.35 2.6 1.02 4.42 2 5.4.98.98 2.8 1.65 5.4 2-2.6.35-4.42 1.02-5.4 2-.98.98-1.65 2.8-2 5.4-.35-2.6-1.02-4.42-2-5.4-.98-.98-2.8-1.65-5.4-2 2.6-.35 4.42-1.02 5.4-2 .98-.98 1.65-2.8 2-5.4z"/>
+      <path fill="url(#${gradientId})" opacity="0.85" d="M18.3 15.2c.16 1.15.45 1.95.88 2.38.43.43 1.23.72 2.38.88-1.15.16-1.95.45-2.38.88-.43.43-.72 1.23-.88 2.38-.16-1.15-.45-1.95-.88-2.38-.43-.43-1.23-.72-2.38-.88 1.15-.16 1.95-.45 2.38-.88.43-.43.72-1.23.88-2.38z"/>
+    </svg>
+  `;
+
   const root = document.createElement("div");
   root.id = "flp-ai-widget-root";
   root.innerHTML = `
     <div id="flp-ai-panel">
       <div id="flp-ai-head">
-        <div class="t">ictfrom <span>AI</span> Assistant</div>
+        <div class="t">${sparkleSvg('flp-spark-head')} ictfrom <span>AI</span> Assistant</div>
         <button id="flp-ai-close" aria-label="Close">✕</button>
       </div>
       <div id="flp-ai-body">
@@ -85,7 +112,7 @@ const WORKER_URL = "https://calm-hall-4de2ictfrom-worker.sithijawa2009.workers.d
         <button id="flp-ai-send">Send</button>
       </div>
     </div>
-    <button id="flp-ai-fab" aria-label="Open AI assistant">💬</button>
+    <button id="flp-ai-fab" aria-label="Open AI assistant">${sparkleSvg('flp-spark-fab')}</button>
   `;
   document.body.appendChild(root);
 
