@@ -88,6 +88,11 @@
   const NAV_DELAY = 1350; // ms — full drop + hold + retract cycle, so the whole animation is seen
 
   function handleActivate(x, y, e) {
+    // If a page's own script already routed this exact click through
+    // window.FLP_spiderNavigate (e.g. Lesson pages' script.js), don't
+    // spawn a second spider for the same click as it bubbles up to window.
+    if (e.__flpHandled) return;
+
     fireSpiderDrop(x, y);
 
     const link = e.target.closest && e.target.closest("a[href]");
@@ -306,6 +311,10 @@
     if (typeof evOrX === "object" && evOrX !== null) {
       x = evOrX.clientX;
       y = evOrX.clientY;
+      // Mark the original click event as already handled, so the generic
+      // window click-listener (which fires later, during bubbling) doesn't
+      // spawn a second spider for this same click.
+      try { evOrX.__flpHandled = true; } catch (e) {}
     } else {
       x = evOrX;
       y = maybeY;
