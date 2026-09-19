@@ -106,6 +106,7 @@
   .player-wrap{ display:none; animation:fadeUp .4s ease; }
   .player-wrap.ready{ display:block; }
 
+  /* ===== Custom player shell ===== */
   .video-frame{
     position:relative; width:100%; padding-top:56.25%;
     background:#000; border-radius:14px; overflow:hidden;
@@ -114,19 +115,64 @@
   }
   .video-frame iframe{
     position:absolute; inset:0; width:100%; height:100%; border:0;
+    z-index:0;
+    pointer-events:none; /* iframe never receives direct clicks - fully controlled via JS API */
   }
 
-  /* Blocks clicks on the top strip of the embed (title text + channel/YT logo area)
-     so viewers can't tap through to youtube.com. Doesn't cover the actual play
-     button or controls, which sit lower/center in the player. */
-  .video-frame .click-shield{
-    position:absolute;
-    top:0; left:0; right:0;
-    height:48px;
-    z-index:2;
-    background:transparent;
-    cursor:default;
+  /* Full-cover invisible layer. This is what actually receives every click/tap
+     over the video area. Because the iframe itself has pointer-events:none,
+     there is no way for a viewer to reach YouTube's own share icon, logo
+     watermark, title bar, or "suggested videos" pause screen - none of that
+     chrome is ever clickable, since input never reaches the iframe. */
+  .yt-shield{
+    position:absolute; inset:0; z-index:1;
+    background:transparent; cursor:pointer;
   }
+
+  /* Our own control bar, drawn on top of everything */
+  .custom-controls{
+    position:absolute; left:0; right:0; bottom:0; z-index:2;
+    display:flex; align-items:center; gap:10px;
+    padding:8px 12px;
+    background:linear-gradient(0deg, rgba(0,0,0,.82) 0%, rgba(0,0,0,.55) 70%, transparent 100%);
+  }
+  .cc-btn{
+    background:none; border:none; color:var(--white); font-size:16px;
+    cursor:pointer; padding:4px 6px; line-height:1; flex:none;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .cc-btn:hover{ color:var(--red); }
+  .cc-time{
+    color:var(--grey); font-size:11px; white-space:nowrap; flex:none; min-width:82px;
+  }
+  .cc-progress{
+    position:relative; flex:1; height:14px; display:flex; align-items:center; cursor:pointer; touch-action:none;
+  }
+  .cc-progress::before{
+    content:''; position:absolute; left:0; right:0; height:4px; border-radius:3px;
+    background:rgba(255,255,255,.18);
+  }
+  .cc-progress-fill{
+    position:absolute; left:0; height:4px; border-radius:3px; width:0%;
+    background:var(--red); pointer-events:none;
+  }
+  .cc-progress-handle{
+    position:absolute; left:0%; width:11px; height:11px; border-radius:50%;
+    background:var(--red); transform:translateX(-50%); pointer-events:none;
+    box-shadow:0 0 0 3px rgba(229,18,26,.25);
+  }
+  .cc-volume{
+    width:70px; accent-color:var(--red); flex:none;
+  }
+  @media (max-width:520px){
+    .cc-volume{ display:none; }
+    .cc-time{ min-width:64px; font-size:10px; }
+  }
+
+  .video-frame:fullscreen{ padding-top:0; height:100vh; border-radius:0; }
+  .video-frame:-webkit-full-screen{ padding-top:0; height:100vh; border-radius:0; }
+  .video-frame:fullscreen iframe,
+  .video-frame:-webkit-full-screen iframe{ height:100%; }
 
   .meta{
     margin-top:22px; padding-bottom:20px; border-bottom:1px solid var(--line);
@@ -206,9 +252,21 @@
   </div>
 
   <div class="player-wrap" id="playerWrap">
-    <div class="video-frame">
-      <div class="click-shield" id="clickShield" title=""></div>
-      <iframe id="ytFrame" src="" title="Lesson video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    <div class="video-frame" id="videoFrame">
+      <iframe id="ytFrame" src="" title="Lesson video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" tabindex="-1"></iframe>
+      <div class="yt-shield" id="ytShield"></div>
+
+      <div class="custom-controls" id="customControls">
+        <button class="cc-btn" id="ccPlayPause" aria-label="Play / Pause">▶</button>
+        <div class="cc-time" id="ccTime">0:00 / 0:00</div>
+        <div class="cc-progress" id="ccProgress">
+          <div class="cc-progress-fill" id="ccProgressFill"></div>
+          <div class="cc-progress-handle" id="ccProgressHandle"></div>
+        </div>
+        <button class="cc-btn" id="ccMute" aria-label="Mute / Unmute">🔊</button>
+        <input type="range" class="cc-volume" id="ccVolume" min="0" max="100" value="100" aria-label="Volume">
+        <button class="cc-btn" id="ccFullscreen" aria-label="Fullscreen">⛶</button>
+      </div>
     </div>
 
     <div class="meta">
@@ -278,7 +336,6 @@
         ctx.fill();
       }
 
-      // faint connecting lines for nearby particles
       for (let i = 0; i < particles.length; i++){
         for (let j = i + 1; j < particles.length; j++){
           const a = particles[i], b = particles[j];
@@ -305,6 +362,148 @@
   })();
 </script>
 
+<!-- YouTube IFrame Player API - lets us drive the video (play/pause/seek/volume)
+     purely via JavaScript, so the viewer never has to click on the iframe
+     itself (see .yt-shield above: iframe has pointer-events:none). -->
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+  let ytApiReady = false;
+  let pendingVideoInit = false;
+
+  window.onYouTubeIframeAPIReady = function(){
+    ytApiReady = true;
+    if (pendingVideoInit) createPlayer();
+  };
+
+  window.ytPlayer = null;
+  let timeLoop = null;
+  let userSeeking = false;
+
+  function createPlayer(){
+    window.ytPlayer = new YT.Player('ytFrame', {
+      events: {
+        onReady: onPlayerReady,
+        onStateChange: onPlayerStateChange
+      }
+    });
+  }
+
+  function formatTime(s){
+    s = Math.max(0, Math.floor(s || 0));
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return m + ':' + String(sec).padStart(2, '0');
+  }
+
+  function setFill(frac){
+    frac = Math.min(1, Math.max(0, frac));
+    document.getElementById('ccProgressFill').style.width = (frac * 100) + '%';
+    document.getElementById('ccProgressHandle').style.left = (frac * 100) + '%';
+  }
+
+  function startTimeLoop(){
+    clearInterval(timeLoop);
+    timeLoop = setInterval(() => {
+      if (!window.ytPlayer || userSeeking) return;
+      const cur = window.ytPlayer.getCurrentTime ? window.ytPlayer.getCurrentTime() : 0;
+      const dur = window.ytPlayer.getDuration ? window.ytPlayer.getDuration() : 0;
+      if (dur > 0) setFill(cur / dur);
+      document.getElementById('ccTime').textContent = formatTime(cur) + ' / ' + formatTime(dur);
+    }, 400);
+  }
+
+  function togglePlay(){
+    if (!window.ytPlayer || !window.ytPlayer.getPlayerState) return;
+    const state = window.ytPlayer.getPlayerState();
+    if (state === YT.PlayerState.PLAYING) window.ytPlayer.pauseVideo();
+    else window.ytPlayer.playVideo();
+  }
+
+  function onPlayerReady(e){
+    startTimeLoop();
+    const vol = e.target.getVolume ? e.target.getVolume() : 100;
+    document.getElementById('ccVolume').value = vol;
+  }
+
+  function onPlayerStateChange(e){
+    const btn = document.getElementById('ccPlayPause');
+    if (e.data === YT.PlayerState.PLAYING){
+      btn.textContent = '⏸';
+      startTimeLoop();
+    } else if (e.data === YT.PlayerState.PAUSED){
+      btn.textContent = '▶';
+    } else if (e.data === YT.PlayerState.ENDED){
+      btn.textContent = '▶';
+      clearInterval(timeLoop);
+    }
+  }
+
+  function wireCustomControls(){
+    const shield = document.getElementById('ytShield');
+    const playBtn = document.getElementById('ccPlayPause');
+    const muteBtn = document.getElementById('ccMute');
+    const volume = document.getElementById('ccVolume');
+    const progress = document.getElementById('ccProgress');
+    const frame = document.getElementById('videoFrame');
+    const fsBtn = document.getElementById('ccFullscreen');
+
+    shield.addEventListener('click', togglePlay);
+    playBtn.addEventListener('click', togglePlay);
+
+    muteBtn.addEventListener('click', () => {
+      if (!window.ytPlayer) return;
+      if (window.ytPlayer.isMuted()) {
+        window.ytPlayer.unMute();
+        muteBtn.textContent = '🔊';
+      } else {
+        window.ytPlayer.mute();
+        muteBtn.textContent = '🔇';
+      }
+    });
+
+    volume.addEventListener('input', (e) => {
+      if (!window.ytPlayer) return;
+      const v = Number(e.target.value);
+      window.ytPlayer.setVolume(v);
+      if (v === 0) { window.ytPlayer.mute(); muteBtn.textContent = '🔇'; }
+      else { window.ytPlayer.unMute(); muteBtn.textContent = '🔊'; }
+    });
+
+    function seekFracFromEvent(e){
+      const rect = progress.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      return Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+    }
+
+    progress.addEventListener('pointerdown', (e) => {
+      userSeeking = true;
+      setFill(seekFracFromEvent(e));
+      progress.setPointerCapture(e.pointerId);
+    });
+    progress.addEventListener('pointermove', (e) => {
+      if (!userSeeking) return;
+      setFill(seekFracFromEvent(e));
+    });
+    progress.addEventListener('pointerup', (e) => {
+      if (!userSeeking || !window.ytPlayer) { userSeeking = false; return; }
+      const frac = seekFracFromEvent(e);
+      const dur = window.ytPlayer.getDuration ? window.ytPlayer.getDuration() : 0;
+      window.ytPlayer.seekTo(frac * dur, true);
+      userSeeking = false;
+    });
+
+    fsBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        (frame.requestFullscreen || frame.webkitRequestFullscreen || frame.msRequestFullscreen)?.call(frame);
+      } else {
+        document.exitFullscreen();
+      }
+    });
+  }
+
+  wireCustomControls();
+</script>
+
 <script type="module">
   function getParam(name){
     return new URLSearchParams(window.location.search).get(name);
@@ -322,9 +521,6 @@
   const ep = getParam('ep');
   const backTo = getParam('back');
 
-  // backTo is a full absolute path (e.g. "/ictfrom-FLP/All Lessons/Lesson 01 (2028)/index.html")
-  // sent by script.js, so this always returns to the exact lesson page the
-  // student came from — not just the site's root Home page.
   document.getElementById('backLink').href = backTo || 'Home.html';
 
   const statusEl = document.getElementById('status');
@@ -363,7 +559,6 @@
       flashStatus('✓ Saved on this device', true);
     });
 
-    // autosave a little while after typing stops
     let typingTimer = null;
     area.addEventListener('input', () => {
       clearTimeout(typingTimer);
@@ -405,15 +600,20 @@
           </div>
         `;
       } else {
-        // youtube-nocookie.com = privacy-enhanced mode. Same player, fewer
-        // outward YouTube signals, no third-party cookies set until playback.
+        // controls=0 + fs=0 hides ALL native YouTube chrome (play bar, share
+        // icon, logo, fullscreen button). enablejsapi=1 + origin lets our own
+        // controls above drive playback via postMessage instead.
         const params = new URLSearchParams({
           autoplay: '1',
-          rel: '0',                 // don't show related videos from other channels at the end
-          modestbranding: '1',      // smaller YouTube logo in the control bar
-          iv_load_policy: '3',      // hide video annotations
-          disablekb: '0',
-          playsinline: '1'
+          rel: '0',
+          modestbranding: '1',
+          iv_load_policy: '3',
+          controls: '0',
+          disablekb: '1',
+          fs: '0',
+          playsinline: '1',
+          enablejsapi: '1',
+          origin: window.location.origin
         });
         document.getElementById('ytFrame').src =
           `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
@@ -424,6 +624,9 @@
         statusEl.style.display = 'none';
         document.getElementById('playerWrap').classList.add('ready');
         setupNotes(lessonId, ep);
+
+        if (ytApiReady) createPlayer();
+        else pendingVideoInit = true;
       }
     }
   }
