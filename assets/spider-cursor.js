@@ -85,7 +85,7 @@
 
   // ---------------- click: spawn the spider, and (for real links) delay
   // navigation just long enough for the drop animation to actually be seen ----------------
-  const NAV_DELAY = 480; // ms — roughly the drop animation's duration
+  const NAV_DELAY = 1350; // ms — full drop + hold + retract cycle, so the whole animation is seen
 
   function handleActivate(x, y, e) {
     fireSpiderDrop(x, y);
@@ -294,6 +294,29 @@
 
     requestAnimationFrame(draw);
   }
+
+  // ---------------- public helper for other scripts on the site ----------------
+  // Some pages navigate via JS (window.location.href = ...) instead of a plain
+  // <a href> link, so our automatic link-intercept above never sees them.
+  // Those pages can call this instead, so the spider still gets to drop
+  // before the page changes:
+  //   window.FLP_spiderNavigate(url, clickEvent);
+  window.FLP_spiderNavigate = function (url, evOrX, maybeY) {
+    let x, y;
+    if (typeof evOrX === "object" && evOrX !== null) {
+      x = evOrX.clientX;
+      y = evOrX.clientY;
+    } else {
+      x = evOrX;
+      y = maybeY;
+    }
+    if (typeof x !== "number" || typeof y !== "number") {
+      x = W / 2;
+      y = H / 3;
+    }
+    fireSpiderDrop(x, y);
+    setTimeout(() => { window.location.href = url; }, NAV_DELAY);
+  };
 
   requestAnimationFrame(draw);
 })();
