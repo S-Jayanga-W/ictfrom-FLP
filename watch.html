@@ -305,7 +305,7 @@
 
   <div class="player-wrap" id="playerWrap">
     <div class="video-frame" id="videoFrame">
-      <iframe id="ytFrame" src="" title="Lesson video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" tabindex="-1"></iframe>
+      <div id="ytFrame"></div>
       <div class="yt-shield" id="ytShield"></div>
 
       <div class="custom-controls" id="customControls">
@@ -430,11 +430,28 @@
   };
 
   window.ytPlayer = null;
+  window.pendingVideoId = null;
   let timeLoop = null;
   let userSeeking = false;
 
   function createPlayer(){
+    if (!window.pendingVideoId) return;
     window.ytPlayer = new YT.Player('ytFrame', {
+      width: '100%',
+      height: '100%',
+      videoId: window.pendingVideoId,
+      host: 'https://www.youtube-nocookie.com',
+      playerVars: {
+        autoplay: 1,
+        rel: 0,
+        modestbranding: 1,
+        iv_load_policy: 3,
+        controls: 0,
+        disablekb: 1,
+        fs: 0,
+        playsinline: 1,
+        origin: window.location.origin
+      },
       events: {
         onReady: onPlayerReady,
         onStateChange: onPlayerStateChange
@@ -706,23 +723,11 @@
           </div>
         `;
       } else {
-        // controls=0 + fs=0 hides ALL native YouTube chrome (play bar, share
-        // icon, logo, fullscreen button). enablejsapi=1 + origin lets our own
-        // controls above drive playback via postMessage instead.
-        const params = new URLSearchParams({
-          autoplay: '1',
-          rel: '0',
-          modestbranding: '1',
-          iv_load_policy: '3',
-          controls: '0',
-          disablekb: '1',
-          fs: '0',
-          playsinline: '1',
-          enablejsapi: '1',
-          origin: window.location.origin
-        });
-        document.getElementById('ytFrame').src =
-          `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
+        // Hand the raw videoId to the player (see createPlayer in the earlier
+        // script block) rather than building an embed URL ourselves - letting
+        // YT.Player construct its own iframe is what makes play/pause/seek
+        // actually respond when combined with the nocookie host.
+        window.pendingVideoId = videoId;
 
         document.getElementById('epTag').textContent = 'EP ' + ep;
         document.getElementById('epTitle').textContent = decodeURIComponent(getParam('title') || '');
