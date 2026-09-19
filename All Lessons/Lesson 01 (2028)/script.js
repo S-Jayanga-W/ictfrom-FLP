@@ -88,7 +88,7 @@ async function init(){
     // present for some reason, we fall back to navigating immediately.
     function goToWatchPage(ev){
       if (!unlocked) {
-        alert('🔒 මෙම විඩියෝව තවම Lock වී ඇත.\nUnlock කරගැනීමට admin ව සම්බන්ධ කරගන්න.');
+        alert('🔒 මෙම විඩියෝව තවම Lock වී ඇත.\nUnlock කරගැනීමට admin ව සම්බන්ධ කරගන්න,sithijawa2009@gmail.com | Send Email For Unlock Your EP Or Lessons.');
         return;
       }
 
