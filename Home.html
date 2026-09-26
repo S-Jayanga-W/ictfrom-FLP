@@ -977,73 +977,96 @@
   lockOverlay.addEventListener('click', (e)=>{ if(e.target === lockOverlay) hideLockModal(); });
   document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') hideLockModal(); });
 
-  // IMPORTANT: these click listeners are attached IMMEDIATELY
-  // (synchronously, as soon as this script runs) rather than after
-  // waiting on window.episodeIndexReady / window.FLP.ready. If we
-  // waited first, a student who clicks a lesson card fast (before
-  // those async lookups finish — e.g. while the data.js files are
-  // still loading) would fall through to the browser's normal
-  // <a href> navigation with NO lock check at all. Attaching here
-  // means e.preventDefault() always runs first, synchronously, on
-  // every click — the async lock check only decides what happens
-  // AFTER that.
-  document.querySelectorAll('.video-grid > a').forEach(a => {
-    a.addEventListener('click', async (e) => {
-      e.preventDefault();
+  // Cache of already-resolved lock states so repeated clicks on the
+  // same card don't re-hit Firebase every time.
+  const lockStateCache = new Map(); // lessonId -> boolean
 
-      const href = a.getAttribute('href');
-      const folder = href.split('index.html')[0];
+  async function resolveLessonId(a){
+    await window.episodeIndexReady;
+    const href = a.getAttribute('href');
+    const folder = href.split('index.html')[0];
+    return window.LESSON_ID_BY_FOLDER[folder];
+  }
 
-      await window.episodeIndexReady;
-      const lessonId = window.LESSON_ID_BY_FOLDER[folder];
+  // =========================================================
+  // ONE delegated click handler, on document, in the CAPTURE
+  // phase, with stopImmediatePropagation().
+  //
+  // Why this exact shape: a capture-phase listener on document
+  // runs before any listener bound directly to the link itself
+  // (those only fire in the bubble phase). Calling
+  // stopImmediatePropagation() here stops the event dead — it
+  // will NOT continue on to reach any other click listener that
+  // might also be bound to this same link, including a stray or
+  // duplicate one left over from an older version of this script.
+  // This makes the lock guard bulletproof against exactly the bug
+  // we hit before: a locked lesson's popup showing correctly while
+  // navigation ALSO happened underneath it because a second, older
+  // listener on the same link fired independently and did its own
+  // window.location.href = ... . With this shape there is only
+  // ever ONE handler that gets to act on the click, period.
+  // =========================================================
+  document.addEventListener('click', async (e) => {
+    const a = e.target.closest('.video-grid > a');
+    if (!a) return;
 
-      if (!lessonId){
-        window.location.href = href; // no lock info on file, fail-open
-        return;
-      }
+    e.preventDefault();
+    e.stopImmediatePropagation();
 
-      const { isAdmin } = await window.FLP.ready;
-      if (isAdmin){
-        window.location.href = href; // admins can preview locked lessons
-        return;
-      }
+    const href = a.getAttribute('href');
+    const lessonId = await resolveLessonId(a);
 
-      const locked = await window.FLP.isLessonLocked(lessonId);
-      if (locked){
-        showLockModal();
-      } else {
-        window.location.href = href;
-      }
-    });
-  });
+    if (!lessonId){
+      window.location.href = href; // no lock info on file, fail-open
+      return;
+    }
+
+    const { isAdmin } = await window.FLP.ready;
+    if (isAdmin){
+      window.location.href = href; // admins can preview locked lessons
+      return;
+    }
+
+    let locked = lockStateCache.get(lessonId);
+    if (locked === undefined){
+      locked = await window.FLP.isLessonLocked(lessonId);
+      lockStateCache.set(lessonId, locked);
+    }
+
+    if (locked){
+      showLockModal();
+    } else {
+      window.location.href = href;
+    }
+  }, true); // <-- true = capture phase, runs first
 
   // Visual-only pass: badge/dim any card that's currently locked.
-  // This never affects whether navigation is blocked — that's fully
-  // handled by the click guard above regardless of this pass timing.
+  // This never affects whether navigation is blocked — that is
+  // fully handled by the capture-phase guard above regardless of
+  // this pass's timing.
   (async () => {
     await window.episodeIndexReady;
     const { isAdmin } = await window.FLP.ready;
     if (isAdmin) return;
 
-    document.querySelectorAll('.video-grid > a').forEach(a => {
-      const href = a.getAttribute('href');
-      const folder = href.split('index.html')[0];
-      const lessonId = window.LESSON_ID_BY_FOLDER[folder];
+    document.querySelectorAll('.video-grid > a').forEach(async (a) => {
+      const lessonId = await resolveLessonId(a);
       if (!lessonId) return;
 
-      window.FLP.isLessonLocked(lessonId).then(locked=>{
-        if (!locked) return;
-        const card = a.querySelector('.video-card');
-        if (!card) return;
-        card.classList.add('is-locked');
-        const thumb = card.querySelector('.thumb');
-        if (thumb){
-          const badge = document.createElement('span');
-          badge.className = 'locked-badge';
-          badge.textContent = '🔒 LOCKED';
-          thumb.appendChild(badge);
-        }
-      });
+      const locked = await window.FLP.isLessonLocked(lessonId);
+      lockStateCache.set(lessonId, locked);
+      if (!locked) return;
+
+      const card = a.querySelector('.video-card');
+      if (!card) return;
+      card.classList.add('is-locked');
+      const thumb = card.querySelector('.thumb');
+      if (thumb){
+        const badge = document.createElement('span');
+        badge.className = 'locked-badge';
+        badge.textContent = '🔒 LOCKED';
+        thumb.appendChild(badge);
+      }
     });
   })();
 </script>
