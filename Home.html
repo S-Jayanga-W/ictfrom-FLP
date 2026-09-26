@@ -246,6 +246,7 @@
     .video-card{
       background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
       overflow:hidden; transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;
+      position:relative;
     }
     .video-card:hover{ transform:translateY(-6px); border-color:rgba(230,35,30,0.5); box-shadow:0 20px 44px -18px rgba(0,0,0,0.7); }
     .thumb{
@@ -289,6 +290,40 @@
     .video-topic{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--red); text-transform:uppercase; margin-bottom:8px; display:block; }
     .video-title{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px; margin-bottom:6px; }
     .video-meta{ color:var(--muted); font-size:12.5px; }
+
+    /* ---------- locked lesson state ---------- */
+    .locked-badge{
+      position:absolute; top:9px; right:9px; z-index:3;
+      font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.03em;
+      background:rgba(0,0,0,.8); border:1px solid var(--red); color:var(--red);
+      padding:4px 9px; border-radius:5px;
+    }
+    .video-card.is-locked{ opacity:.5; filter:grayscale(.35); }
+    .video-card.is-locked:hover{ transform:none; box-shadow:none; border-color:var(--line); }
+    .video-card.is-locked .thumb-img{ filter:blur(1px); }
+
+    /* ---------- lock modal ---------- */
+    .lock-modal-overlay{
+      position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,.78); backdrop-filter:blur(5px);
+      display:none; align-items:center; justify-content:center; padding:20px;
+    }
+    .lock-modal-overlay.show{ display:flex; }
+    .lock-modal{
+      background:var(--panel); border:1px solid var(--red); border-radius:16px;
+      max-width:420px; width:100%; padding:34px 28px; text-align:center;
+      box-shadow:0 24px 70px -10px rgba(230,35,30,.35);
+      animation:lockRise .25s ease-out;
+    }
+    @keyframes lockRise{ from{ opacity:0; transform:translateY(14px) scale(.98); } to{ opacity:1; transform:translateY(0) scale(1); } }
+    .lock-modal .lock-icon{ font-size:40px; margin-bottom:14px; }
+    .lock-modal h3{ font-family:'Space Grotesk',sans-serif; font-size:19px; margin-bottom:14px; color:var(--red); letter-spacing:.3px; }
+    .lock-modal p{ color:var(--muted); font-size:14px; line-height:1.8; margin-bottom:26px; }
+    .lock-modal p b{ color:var(--text); font-weight:600; }
+    .lock-modal button{
+      background:var(--red); color:#fff; border:none; padding:11px 28px; border-radius:7px;
+      font-family:'JetBrains Mono',monospace; font-weight:600; font-size:13px; cursor:pointer; transition:.2s;
+    }
+    .lock-modal button:hover{ background:#ff2e28; box-shadow:0 0 20px -4px rgba(230,35,30,.7); }
 
     /* ---------- notes / tutes ---------- */
     .notes-list{ display:flex; flex-direction:column; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
@@ -709,6 +744,24 @@
   </div>
 </footer>
 
+<!-- =========================================================
+     LOCKED LESSON POPUP — shown when a student clicks on a
+     lesson that the admin has locked from admin.html.
+     ========================================================= -->
+<div class="lock-modal-overlay" id="lockModalOverlay">
+  <div class="lock-modal">
+    <div class="lock-icon">🔒</div>
+    <h3>This Lesson Is Locked</h3>
+    <p>
+      Only Lesson 01 is provided for free. If you need access to the other lessons,
+      payment is required.<br><br>
+      <b>Contact : ictfromabc, Ravidu Bandaranayake Sir</b><br>
+      071 455 5513
+    </p>
+    <button type="button" id="lockModalClose">Close</button>
+  </div>
+</div>
+
 <script>
   const revealEls = document.querySelectorAll('.reveal');
   const io = new IntersectionObserver((entries)=>{
@@ -769,6 +822,12 @@
      TO EDIT AN EPISODE (title/tags/thumb/etc.):
        Edit it ONLY inside that lesson's own data.js file.
        This page will pick the change up automatically on reload.
+
+     This same pass also builds window.LESSON_ID_BY_FOLDER, which
+     maps each lesson's folder path to its lessonId (the same id
+     admin.html uses for lock/unlock and per-student access). The
+     lesson-lock click guard further down uses that map to know
+     which lesson a given card links to.
      ========================================================= -->
 <script>
   const LESSON_FOLDERS = [
@@ -779,6 +838,7 @@
   ];
 
   let episodesIndex = [];
+  window.LESSON_ID_BY_FOLDER = {};
 
   function loadLessonScript(src){
     return new Promise((resolve)=>{
@@ -797,6 +857,11 @@
       const ok = await loadLessonScript(folder + 'data.js');
       if(ok && window.CURRENT_LESSON){
         const ld = window.CURRENT_LESSON;
+
+        if (ld.lessonId){
+          window.LESSON_ID_BY_FOLDER[folder] = ld.lessonId;
+        }
+
         (ld.episodes || []).forEach(e=>{
           collected.push({
             lesson: ld.lesson,
@@ -813,7 +878,10 @@
     episodesIndex = collected;
   }
 
-  buildEpisodeIndex();
+  // Exposed on window so the lock-guard module script below (which
+  // runs in its own module scope) can await the SAME build pass
+  // instead of racing it with a second, duplicate load.
+  window.episodeIndexReady = buildEpisodeIndex();
 
   const searchResultsBox = document.getElementById('searchResults');
 
@@ -886,6 +954,76 @@
     link.style.cssText = 'position:fixed;bottom:22px;left:22px;z-index:9999;background:#e5121a;color:#fff;font-family:monospace;font-weight:700;letter-spacing:1px;font-size:13px;padding:12px 18px;border-radius:8px;text-decoration:none;box-shadow:0 8px 24px -6px rgba(229,18,26,.6);';
     document.body.appendChild(link);
   });
+</script>
+
+<!-- =========================================================
+     SITE-WIDE LESSON LOCK GUARD
+     Blocks navigation into a lesson the admin has locked from
+     admin.html's "Lesson Access (site-wide)" panel, and shows
+     the popup message instead. Also dims/badges the card once
+     we know it's locked, so it's obvious before the click too.
+
+     An admin account is NOT blocked here, so an admin can still
+     open a locked lesson from the normal site to check it.
+     ========================================================= -->
+<script type="module">
+  const lockOverlay = document.getElementById('lockModalOverlay');
+  const lockCloseBtn = document.getElementById('lockModalClose');
+
+  function showLockModal(){ lockOverlay.classList.add('show'); }
+  function hideLockModal(){ lockOverlay.classList.remove('show'); }
+
+  lockCloseBtn.addEventListener('click', hideLockModal);
+  lockOverlay.addEventListener('click', (e)=>{ if(e.target === lockOverlay) hideLockModal(); });
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') hideLockModal(); });
+
+  async function guardLessonLinks(){
+    // Wait for the SAME episode-index build pass to finish, so
+    // window.LESSON_ID_BY_FOLDER is populated — avoids loading
+    // every data.js file a second time.
+    await window.episodeIndexReady;
+
+    const { isAdmin } = await window.FLP.ready;
+
+    document.querySelectorAll('.video-grid > a').forEach(a => {
+      const href = a.getAttribute('href');
+      const folder = href.split('index.html')[0];
+      const lessonId = window.LESSON_ID_BY_FOLDER[folder];
+
+      // No lessonId on file for this card (e.g. data.js missing) —
+      // fail-open, behave exactly like before this feature existed.
+      if (!lessonId) return;
+
+      // Admins can still open locked lessons from the normal site.
+      if (isAdmin) return;
+
+      a.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const locked = await window.FLP.isLessonLocked(lessonId);
+        if (locked){
+          showLockModal();
+        } else {
+          window.location.href = href;
+        }
+      });
+
+      window.FLP.isLessonLocked(lessonId).then(locked=>{
+        if (!locked) return;
+        const card = a.querySelector('.video-card');
+        if (!card) return;
+        card.classList.add('is-locked');
+        const thumb = card.querySelector('.thumb');
+        if (thumb){
+          const badge = document.createElement('span');
+          badge.className = 'locked-badge';
+          badge.textContent = '🔒 LOCKED';
+          thumb.appendChild(badge);
+        }
+      });
+    });
+  }
+
+  guardLessonLinks();
 </script>
 
 <script src="assets/ai-widget.js"></script>
