@@ -53,6 +53,21 @@
   #app{ display:none; }
   #app.ready{ display:block; }
 
+  /* ---------- site-wide lesson lock panel ---------- */
+  .lock-panel{
+    margin:18px 24px 0; padding:16px 18px; border:1px solid var(--line);
+    border-radius:12px; background:var(--panel);
+  }
+  .lock-panel h2{ font-size:13px; letter-spacing:2px; color:var(--grey); margin-bottom:12px; text-transform:uppercase; }
+  .lock-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 0; border-bottom:1px dashed var(--line); font-size:13px;
+  }
+  .lock-row:last-child{ border-bottom:none; }
+  .lock-row .lname{ display:flex; align-items:center; gap:8px; }
+  .lock-row .lname.is-locked{ color:var(--red); }
+  .lock-row .lname.is-locked::before{ content:"🔒 "; }
+
   .layout{
     display:grid; grid-template-columns: 340px 1fr; gap:0; min-height:calc(100vh - 65px);
   }
@@ -175,6 +190,11 @@
     </nav>
   </header>
 
+  <div class="lock-panel">
+    <h2>🔒 Lesson Access (site-wide)</h2>
+    <div id="lessonLocksPanel">Loading…</div>
+  </div>
+
   <div class="layout">
     <div class="students-col">
       <h2>Students</h2>
@@ -192,7 +212,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script>window.SITE_ROOT = '';</script>
+<script>window.SITE_ROOT = ''; window.FLP_DISABLE_IDLE_LOGOUT = true;</script>
 <script type="module" src="assets/access-control.js"></script>
 
 <script type="module">
@@ -285,9 +305,59 @@
     USERS = usersSnap.exists() ? usersSnap.val() : {};
 
     renderStudentList('');
+    renderLessonLocks();
 
     document.getElementById('searchBox').addEventListener('input', (e)=>{
       renderStudentList(e.target.value.trim().toLowerCase());
+    });
+  }
+
+  // =========================================================
+  // SITE-WIDE LESSON LOCK PANEL
+  // Locking a lesson here blocks EVERY student from opening it
+  // (checked on Home.html / the episode pages via
+  // window.FLP.isLessonLocked), regardless of any per-student
+  // unlock set further down in the student detail view.
+  // =========================================================
+  async function renderLessonLocks(){
+    const panel = document.getElementById('lessonLocksPanel');
+
+    if (LESSONS.length === 0){
+      panel.innerHTML = '<div style="color:var(--grey);">No lessons found.</div>';
+      return;
+    }
+
+    panel.innerHTML = LESSONS.map(l => `
+      <div class="lock-row" data-lesson="${l.lessonId}">
+        <span class="lname" id="lname-${l.lessonId}">${escapeHtml(l.lesson)}</span>
+        <label class="switch">
+          <input type="checkbox" class="lesson-lock-toggle" data-lesson="${l.lessonId}">
+          <span class="slider"></span>
+        </label>
+      </div>
+    `).join('');
+
+    for (const l of LESSONS){
+      const locked = await window.FLP.isLessonLocked(l.lessonId);
+      const cb = panel.querySelector(`.lesson-lock-toggle[data-lesson="${l.lessonId}"]`);
+      const nameEl = document.getElementById(`lname-${l.lessonId}`);
+      if (cb) cb.checked = locked;
+      if (nameEl) nameEl.classList.toggle('is-locked', locked);
+    }
+
+    panel.querySelectorAll('.lesson-lock-toggle').forEach(el => {
+      el.addEventListener('change', async () => {
+        const lessonId = el.dataset.lesson;
+        const nameEl = document.getElementById(`lname-${lessonId}`);
+        try{
+          await window.FLP.setLessonLocked(lessonId, el.checked);
+          if (nameEl) nameEl.classList.toggle('is-locked', el.checked);
+          showToast(`${lessonId} ${el.checked ? 'LOCKED 🔒 for all students' : 'unlocked ✓'}`, true);
+        }catch(e){
+          showToast('Failed: ' + e.message, false);
+          el.checked = !el.checked;
+        }
+      });
     });
   }
 
