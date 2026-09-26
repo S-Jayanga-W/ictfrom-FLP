@@ -5,6 +5,7 @@
 //   - Is someone logged in? (if not, this sends them to the login page)
 //   - Is this user an admin?
 //   - Is a given lesson / episode unlocked for this user?
+//   - Is a given lesson LOCKED SITE-WIDE by the admin? (new)
 //
 // HOW TO USE (put BOTH lines in <head> or right before </body>,
 // this exact order, and set SITE_ROOT to the relative path back
@@ -33,6 +34,13 @@
 //   // returns the YouTube URL string, or null if locked / not set.
 //   // (Locked videos are NOT readable by a normal student — this is
 //   // enforced by the Firebase Security Rules, not just hidden in the UI.)
+//
+//   const locked = await window.FLP.isLessonLocked('lesson01');
+//   // true if the ADMIN has globally locked this lesson for EVERY
+//   // student (independent of any per-student unlock). Use this to
+//   // block navigation into a lesson's episode page.
+//
+//   await window.FLP.setLessonLocked('lesson01', true); // admin only, in practice
 // =========================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
 import {
@@ -43,7 +51,8 @@ import {
 import {
   getDatabase,
   ref,
-  get
+  get,
+  set
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -166,5 +175,30 @@ window.FLP = {
     } catch (e) {
       return null;
     }
+  },
+
+  // ---------------------------------------------------------
+  // SITE-WIDE LESSON LOCK
+  // ---------------------------------------------------------
+  // A locked lesson is blocked for EVERY student, no matter what
+  // their individual per-student access says. Use this to disable
+  // a lesson entirely (e.g. "pay to unlock") until the admin
+  // switches it back on from admin.html.
+  //
+  // Admins themselves are NOT blocked by this — they can still
+  // preview/manage a locked lesson from the admin panel and from
+  // the normal site (so they can check the lesson before unlocking
+  // it for students).
+  isLessonLocked: async (lessonId) => {
+    try {
+      const snap = await get(ref(db, `lessonLocks/${lessonId}`));
+      return snap.exists() && snap.val() === true;
+    } catch (e) {
+      return false; // fail-open: a read error should not brick the whole site
+    }
+  },
+
+  setLessonLocked: async (lessonId, locked) => {
+    await set(ref(db, `lessonLocks/${lessonId}`), !!locked);
   }
 };
