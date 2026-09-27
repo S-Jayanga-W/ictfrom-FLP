@@ -5,6 +5,46 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Watch | ictfrom | Free Learn Pack (FLP)</title>
 <link rel="icon" type="image/png" href="logo.png">
+
+<!-- =========================================================
+     LIGHTWEIGHT ANTI-DOWNLOAD HARDENING
+     This deters CASUAL copying only:
+       - right-click ("Save video/page as...", "Inspect") is blocked
+       - common DevTools / view-source / save-page shortcuts are blocked
+     IMPORTANT LIMITATION (be upfront about this with the site owner):
+     none of this can stop a browser extension or tool that captures
+     the video by watching the actual network requests the browser
+     makes to YouTube's own video CDN (googlevideo.com) while the
+     video plays. That traffic exists at the browser/network level,
+     completely outside what any front-end JavaScript on this page
+     is able to see or block. This script only removes the EASY,
+     no-effort routes (right-click menu, F12, view-source, Ctrl+S).
+     ========================================================= -->
+<script>
+  document.addEventListener('contextmenu', function(e){
+    e.preventDefault();
+  });
+
+  document.addEventListener('keydown', function(e){
+    const k = e.key ? e.key.toLowerCase() : '';
+
+    // F12 - DevTools
+    if (e.key === 'F12') { e.preventDefault(); return; }
+
+    // Ctrl+Shift+I / J / C - DevTools (inspect, console, element picker)
+    if (e.ctrlKey && e.shiftKey && (k === 'i' || k === 'j' || k === 'c')) {
+      e.preventDefault(); return;
+    }
+
+    // Ctrl+U - View Page Source
+    if (e.ctrlKey && k === 'u') { e.preventDefault(); return; }
+
+    // Ctrl+S - Save Page As
+    if (e.ctrlKey && k === 's') { e.preventDefault(); return; }
+  });
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <style>
   :root{
     --black:#0a0a0a;
@@ -26,6 +66,11 @@
     min-height:100vh;
     position:relative;
     overflow-x:hidden;
+    /* Extra deterrent: text on the page (not the YouTube video itself,
+       which is a separate iframe and unaffected by this) can't be
+       selected/dragged as easily. */
+    user-select:none;
+    -webkit-user-select:none;
   }
   a{ color:inherit; }
 
@@ -270,6 +315,10 @@
     background:var(--panel2); border:1px solid var(--line); border-radius:8px;
     color:var(--white); font-family:inherit; font-size:13px; line-height:1.6;
     padding:12px; outline:none; transition:border-color .2s;
+    /* Notes textarea needs normal text selection/typing even though the
+       rest of the page has user-select disabled above. */
+    user-select:text;
+    -webkit-user-select:text;
   }
   .my-notes textarea:focus{ border-color:var(--red-dim); }
   .my-notes .notes-foot{
