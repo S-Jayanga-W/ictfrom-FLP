@@ -26,9 +26,9 @@ window.CURRENT_LESSON = {
     { ep:"05", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.03.31", title:"P5 | Basic Concepts of ICT ", tags:"| Hyperlink | URL | Data Transmissoin Modes | Multiplexing (TDM,FDM,CDM) | Cloud Computing | Video Conferencing | ", duration:"01:49:35", thumb:"thumbnails/lesson01-thumbnail5.png" },
     { ep:"06", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.07", title:"P6 | Basic Concepts of ICT ", tags:"| Stages Of Data Processing | Data Validation Methods | Data Input Methods | Data Processing Methods | Data Output Methods | ", duration:"02:08:06", thumb:"thumbnails/lesson01-thumbnail6.png" },
     { ep:"07", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.21", title:"P7 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"41:08", thumb:"thumbnails/lesson01-thumbnail7.png" },
-    { ep:"08", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.28", title:"P8 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"14:20", thumb:"thumbnails/lesson01-thumbnail8.png" },
-    { ep:"09", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.05", title:"P9 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"14:20", thumb:"thumbnails/lesson01-thumbnail9.png" },
-    { ep:"10", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.12", title:"P10 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"14:20", thumb:"thumbnails/lesson01-thumbnail10.png" },
+    { ep:"08", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.28", title:"P8 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"01:27:26", thumb:"thumbnails/lesson01-thumbnail8.png" },
+    { ep:"09", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.05", title:"P9 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"01:36:27", thumb:"thumbnails/lesson01-thumbnail9.png" },
+    { ep:"10", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.12", title:"P10 | Basic Concepts of ICT ", tags:"Hardware · Software · Basics", duration:"01:42:33", thumb:"thumbnails/lesson01-thumbnail10.png" },
     { ep:"11", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.19", title:"P11 | Basic Concepts of ICT ", tags:"P11 | Basic Concepts of ICT | Unit 01 | Lesson 01", duration:"01:26:09", thumb:"thumbnails/lesson01-thumbnail11.png" }
   ]
 };
