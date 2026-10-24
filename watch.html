@@ -260,6 +260,27 @@
     opacity:1;
   }
 
+  /* ===== Quality selector ===== */
+  .cc-quality-wrap{ position:relative; flex:none; }
+  .cc-menu{
+    position:absolute; right:0; bottom:calc(100% + 14px);
+    min-width:130px; padding:6px;
+    background:rgba(12,10,10,.92); border:1px solid var(--line);
+    border-radius:10px; backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    display:none; flex-direction:column; gap:2px;
+    box-shadow:0 8px 24px -10px rgba(0,0,0,.8);
+  }
+  .cc-menu.open{ display:flex; }
+  .cc-menu button{
+    background:none; border:none; color:var(--white); text-align:left;
+    font-family:inherit; font-size:12px; padding:8px 10px; border-radius:6px; cursor:pointer;
+    display:flex; justify-content:space-between; gap:12px;
+  }
+  .cc-menu button:hover{ background:rgba(229,18,26,.18); }
+  .cc-menu button.active{ color:var(--red); font-weight:700; }
+  .cc-menu button.active::after{ content:"✓"; }
+
   @media (max-width:520px){
     .custom-controls{ left:6px; right:6px; bottom:6px; padding:6px 10px; gap:8px; }
     .cc-volume-wrap{ display:none; }
@@ -367,6 +388,10 @@
         <div class="cc-volume-wrap" id="ccVolumeWrap">
           <button class="cc-btn" id="ccMute" aria-label="Mute / Unmute">🔊</button>
           <input type="range" class="cc-volume" id="ccVolume" min="0" max="100" value="100" aria-label="Volume">
+        </div>
+        <div class="cc-quality-wrap" id="ccQualityWrap">
+          <button class="cc-btn" id="ccQuality" aria-label="Quality">⚙</button>
+          <div class="cc-menu" id="ccQualityMenu"></div>
         </div>
         <button class="cc-btn" id="ccFullscreen" aria-label="Fullscreen">⛶</button>
       </div>
@@ -483,6 +508,15 @@
   let timeLoop = null;
   let userSeeking = false;
 
+  /* Quality selector state (declared up here so every function can see it) */
+  const QUALITY_LABELS = {
+    hd2160:'2160p (4K)', hd1440:'1440p', hd1080:'1080p', hd720:'720p',
+    large:'480p', medium:'360p', small:'240p', tiny:'144p'
+  };
+  let menuOpen = false;
+  let selectedQuality = 'auto';
+  let resumePaused = false;
+
   function createPlayer(){
     if (!window.pendingVideoId) return;
     window.ytPlayer = new YT.Player('ytFrame', {
@@ -551,6 +585,8 @@
       btn.textContent = '⏸';
       startTimeLoop();
       scheduleHideControls();
+      buildQualityMenu();
+      if (resumePaused){ resumePaused = false; window.ytPlayer.pauseVideo(); }
     } else if (e.data === YT.PlayerState.PAUSED){
       btn.textContent = '▶';
       showControls(true);
@@ -583,7 +619,7 @@
   function scheduleHideControls(){
     clearTimeout(hideTimer);
     hideTimer = setTimeout(() => {
-      if (isPlaying() && !userSeeking){
+      if (isPlaying() && !userSeeking && !menuOpen){
         document.getElementById('customControls').classList.add('hidden');
         document.getElementById('videoFrame').classList.add('controls-hidden');
       }
@@ -663,7 +699,7 @@
     frame.addEventListener('mouseenter', () => showControls(false));
     frame.addEventListener('touchstart', () => showControls(false), { passive:true });
     frame.addEventListener('mouseleave', () => {
-      if (isPlaying()) {
+      if (isPlaying() && !menuOpen) {
         document.getElementById('customControls').classList.add('hidden');
         frame.classList.add('controls-hidden');
       }
@@ -674,6 +710,63 @@
   }
 
   wireCustomControls();
+
+  /* ===== Quality selector ===== */
+  function closeQualityMenu(){
+    menuOpen = false;
+    document.getElementById('ccQualityMenu').classList.remove('open');
+  }
+
+  function buildQualityMenu(){
+    const menu = document.getElementById('ccQualityMenu');
+    if (!window.ytPlayer || !window.ytPlayer.getAvailableQualityLevels) return;
+
+    const levels = (window.ytPlayer.getAvailableQualityLevels() || [])
+      .filter(q => QUALITY_LABELS[q]);
+
+    menu.innerHTML = '';
+    const options = [['auto','Auto'], ...levels.map(q => [q, QUALITY_LABELS[q]])];
+
+    options.forEach(([q, label]) => {
+      const b = document.createElement('button');
+      b.textContent = label;
+      if (q === selectedQuality) b.classList.add('active');
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setQuality(q);
+        closeQualityMenu();
+      });
+      menu.appendChild(b);
+    });
+  }
+
+  function setQuality(q){
+    const p = window.ytPlayer;
+    if (!p || !window.pendingVideoId) return;
+    selectedQuality = q;
+
+    const t = p.getCurrentTime ? p.getCurrentTime() : 0;
+    resumePaused = !isPlaying();
+
+    try { p.setPlaybackQuality(q === 'auto' ? 'default' : q); } catch(e){}
+
+    // reload at same position - this is what makes YouTube actually re-pick the quality
+    p.loadVideoById({
+      videoId: window.pendingVideoId,
+      startSeconds: t,
+      suggestedQuality: q === 'auto' ? 'default' : q
+    });
+  }
+
+  document.getElementById('ccQuality').addEventListener('click', (e) => {
+    e.stopPropagation();
+    buildQualityMenu();
+    menuOpen = !menuOpen;
+    document.getElementById('ccQualityMenu').classList.toggle('open', menuOpen);
+    showControls(true);
+  });
+  document.getElementById('ytShield').addEventListener('click', closeQualityMenu);
+  document.addEventListener('click', closeQualityMenu);
 </script>
 
 <script type="module">
