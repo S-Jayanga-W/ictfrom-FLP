@@ -19,7 +19,7 @@ window.CURRENT_LESSON = {
   lesson: "Lesson 01",
   unit: "UNIT 01 — BASIC CONCEPTS OF ICT",
   episodes: [
-    { ep:"01", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.03.03", title:"P1 | Basic Concepts of ICT ", tags:"| Data & Information | Data Processing | Classification Of Data & Information | Charcteristics Of Usefull Information | ", duration:"02:01:14", thumb:"thumbnails/lesson01-thumbnail1.png" },
+    { ep:"01", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.03.03", title:"P1 | Basic Concepts of ICT ", tags:"| Data & Information | Data Processing | Classification Of Data & Information | Charcteristics Of Usefull Information | ", duration:"02:01:14", thumb:"thumbnails/1.png" },
     { ep:"02", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.03.10", title:"P2 | Basic Concepts of ICT ", tags:"| Golden Rule Of Information | Big Data | Life Cycle Of Data | ", duration:"01:48:05", thumb:"thumbnails/lesson01-thumbnail2.png" },
     { ep:"03", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.03.17", title:"P3 | Basic Concepts of ICT ", tags:"| Applicability Of Information In Day To Day Life | Drawbacks Of Manual Mathods In Manipulating Data And Information | Infeasibility Of Applying Manual Method Where They Can Be Harmful Ot Humans | Emergence Of ICT Era | ", duration:"02:17:01", thumb:"thumbnails/lesson01-thumbnail3.png" },
     { ep:"04", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.03.24", title:"P4 | Basic Concepts of ICT ", tags:"| Computer Networks | Classification Of Network By Structure | Classification Of Networks By Distribution | The Internet | WWW | HTTP | Web Page | Web Site | IP Address | Domain Names | ISP | DNS | Web Browsers | ", duration:"02:14:12", thumb:"thumbnails/lesson01-thumbnail4.png" },
