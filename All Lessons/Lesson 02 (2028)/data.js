@@ -14,7 +14,7 @@ window.CURRENT_LESSON = {
   lesson: "Lesson 02",
   unit: "UNIT 02 — EVOLUTION OF COMPUTING",
   episodes: [
-    { ep:"01", unit:"UNIT 02 — Evolution Of Computing", title:"P1 | Evolution Of Computing ", tags:"Data VS Information", duration:"14:20", thumb:"thumbnails/1.jpg" },
+    { ep:"01", unit:"UNIT 02 — Evolution Of Computing", title:"P1 | Evolution Of Computing ", tags:"Data VS Information", duration:"14:20", thumb:"All Lessons/Lesson 02 (2028)/thumbnails/1.jpg" },
     { ep:"02", unit:"UNIT 02 — Evolution Of Computing", title:"P2 | Evolution Of Computing ", tags:"Data VS Information", duration:"14:20", thumb:"thumbnails/2.png" },
     { ep:"03", unit:"UNIT 02 — Evolution Of Computing", title:"P3 | Evolution Of Computing ", tags:"Data VS Information", duration:"14:20", thumb:"thumbnails/3.png" }
   ]
