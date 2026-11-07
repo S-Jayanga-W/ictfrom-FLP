@@ -7,35 +7,21 @@
 <link rel="icon" type="image/png" href="logo.png">
 <style>
   :root{
-    --black:#0a0a0a;
-    --panel:#141110;
-    --line:#2a2422;
-    --red:#e5121a;
-    --red-dim:#7a0c11;
-    --white:#f5f5f5;
-    --grey:#8a8a8a;
-    --green:#2ecc71;
+    --black:#0a0a0a; --panel:#141110; --line:#2a2422; --red:#e5121a;
+    --red-dim:#7a0c11; --white:#f5f5f5; --grey:#8a8a8a; --green:#2ecc71;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
-  body{
-    font-family:'Consolas','Courier New',monospace;
-    background:var(--black);
-    color:var(--white);
-    min-height:100vh;
-  }
+  body{ font-family:'Consolas','Courier New',monospace; background:var(--black); color:var(--white); min-height:100vh; }
   a{ color:inherit; }
 
-  /* ---------- gate screens ---------- */
   #gate{
     position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-    flex-direction:column; gap:14px; text-align:center; padding:20px;
-    background:var(--black); z-index:50;
+    flex-direction:column; gap:14px; text-align:center; padding:20px; background:var(--black); z-index:50;
   }
   #gate.hidden{ display:none; }
   #gate h1{ font-size:22px; color:var(--red); letter-spacing:1px; }
   #gate p{ color:var(--grey); max-width:420px; }
 
-  /* ---------- top bar ---------- */
   header.topbar{
     display:flex; align-items:center; justify-content:space-between;
     padding:16px 24px; border-bottom:1px solid var(--line);
@@ -53,11 +39,7 @@
   #app{ display:none; }
   #app.ready{ display:block; }
 
-  /* ---------- site-wide lesson lock panel ---------- */
-  .lock-panel{
-    margin:18px 24px 0; padding:16px 18px; border:1px solid var(--line);
-    border-radius:12px; background:var(--panel);
-  }
+  .lock-panel{ margin:18px 24px 0; padding:16px 18px; border:1px solid var(--line); border-radius:12px; background:var(--panel); }
   .lock-panel h2{ font-size:13px; letter-spacing:2px; color:var(--grey); margin-bottom:12px; text-transform:uppercase; }
   .lock-row{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -68,61 +50,42 @@
   .lock-row .lname.is-locked{ color:var(--red); }
   .lock-row .lname.is-locked::before{ content:"🔒 "; }
 
-  .layout{
-    display:grid; grid-template-columns: 340px 1fr; gap:0; min-height:calc(100vh - 65px);
-  }
-  @media (max-width: 900px){ .layout{ grid-template-columns: 1fr; } }
+  .layout{ display:grid; grid-template-columns:340px 1fr; gap:0; min-height:calc(100vh - 65px); }
+  @media (max-width:900px){ .layout{ grid-template-columns:1fr; } }
 
-  /* ---------- student list column ---------- */
-  .students-col{
-    border-right:1px solid var(--line); padding:18px; overflow-y:auto; max-height:calc(100vh - 65px);
-  }
+  .students-col{ border-right:1px solid var(--line); padding:18px; overflow-y:auto; max-height:calc(100vh - 65px); }
   .students-col h2{ font-size:13px; letter-spacing:2px; color:var(--grey); margin-bottom:12px; text-transform:uppercase; }
   #searchBox{
     width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line);
     background:var(--panel); color:var(--white); font-family:inherit; font-size:13px; margin-bottom:14px;
   }
   #searchBox:focus{ outline:none; border-color:var(--red); }
-  .student-item{
-    padding:10px 12px; border-radius:8px; cursor:pointer; margin-bottom:6px;
-    border:1px solid transparent; transition:.15s;
-  }
+  .student-item{ padding:10px 12px; border-radius:8px; cursor:pointer; margin-bottom:6px; border:1px solid transparent; transition:.15s; }
   .student-item:hover{ background:var(--panel); }
   .student-item.active{ border-color:var(--red); background:rgba(229,18,26,.08); }
   .student-item .s-name{ font-weight:700; font-size:14px; }
   .student-item .s-email{ font-size:11px; color:var(--grey); }
   #studentCount{ color:var(--grey); font-size:11px; margin-bottom:10px; }
 
-  /* ---------- detail column ---------- */
   .detail-col{ padding:24px; overflow-y:auto; max-height:calc(100vh - 65px); }
   .empty-state{ color:var(--grey); text-align:center; margin-top:80px; font-size:14px; }
 
-  .student-card{
-    background:var(--panel); border:1px solid var(--line); border-radius:12px;
-    padding:18px 20px; margin-bottom:22px;
-  }
+  .student-card{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:22px; }
   .student-card h3{ font-size:18px; margin-bottom:6px; }
   .student-card .grid-info{
-    display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:8px; margin-top:10px;
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; margin-top:10px;
     font-size:12px; color:var(--grey);
   }
   .student-card .grid-info b{ color:var(--white); font-weight:600; }
 
-  .lesson-block{
-    background:var(--panel); border:1px solid var(--line); border-radius:12px;
-    padding:16px 18px; margin-bottom:16px;
-  }
-  .lesson-block .lesson-head{
-    display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
-  }
+  .lesson-block{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin-bottom:16px; }
+  .lesson-block .lesson-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
   .lesson-block .lesson-head h4{ font-size:15px; letter-spacing:.5px; }
   .lesson-block .lesson-head .sub{ font-size:11px; color:var(--grey); }
 
   .switch{ position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; }
   .switch input{ opacity:0; width:0; height:0; }
-  .slider{
-    position:absolute; cursor:pointer; inset:0; background:#3a3230; border-radius:24px; transition:.2s;
-  }
+  .slider{ position:absolute; cursor:pointer; inset:0; background:#3a3230; border-radius:24px; transition:.2s; }
   .slider:before{
     content:""; position:absolute; height:18px; width:18px; left:3px; bottom:3px;
     background:#fff; border-radius:50%; transition:.2s;
@@ -137,18 +100,13 @@
   .full-toggle-row .label{ font-size:13px; }
   .full-toggle-row .label small{ display:block; color:var(--grey); font-size:11px; margin-top:2px; }
 
-  .ep-row{
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
-    padding:8px 0; font-size:13px;
-  }
+  .ep-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; font-size:13px; }
   .ep-row .ep-title{ display:flex; flex-direction:column; }
   .ep-row .ep-title span.tag{ color:var(--red); font-size:11px; font-weight:700; letter-spacing:1px; }
   .ep-row .ep-title span.name{ color:var(--white); }
+  .ep-actions{ display:flex; align-items:center; }
 
-  /* ---------- video link manager ---------- */
-  .video-manager summary{
-    cursor:pointer; font-size:13px; letter-spacing:1px; color:var(--grey); padding:10px 0;
-  }
+  .video-manager summary{ cursor:pointer; font-size:13px; letter-spacing:1px; color:var(--grey); padding:10px 0; }
   .video-manager summary:hover{ color:var(--white); }
   .vid-row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
   .vid-row .tag{ width:44px; flex-shrink:0; color:var(--red); font-size:12px; font-weight:700; }
@@ -163,7 +121,21 @@
   }
   .vid-row button:hover{ background:#c40e15; }
 
-  /* ---------- toast ---------- */
+  /* add lesson / add EP forms */
+  .add-form{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; padding-top:12px; border-top:1px dashed var(--line); }
+  .add-form input{
+    flex:1; min-width:120px; padding:8px 10px; border-radius:6px; border:1px solid var(--line);
+    background:#0d0b0a; color:var(--white); font-family:inherit; font-size:12px;
+  }
+  .add-form input[type=number]{ flex:0 0 80px; min-width:80px; }
+  .add-form input:focus{ outline:none; border-color:var(--red); }
+  .add-form button, .del-ep-btn{
+    padding:8px 12px; border-radius:6px; border:none; background:var(--red); color:#fff;
+    font-family:inherit; font-size:12px; font-weight:700; cursor:pointer;
+  }
+  .del-ep-btn{ background:transparent; border:1px solid var(--line); color:var(--grey); padding:4px 8px; margin-right:10px; }
+  .del-ep-btn:hover{ border-color:var(--red); color:var(--red); }
+
   .toast{
     position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
     background:var(--panel); border:1px solid var(--line); color:var(--white);
@@ -193,6 +165,13 @@
   <div class="lock-panel">
     <h2>🔒 Lesson Access (site-wide)</h2>
     <div id="lessonLocksPanel">Loading…</div>
+
+    <div class="add-form">
+      <input id="newLessonId" placeholder="Lesson ID (e.g. lesson04)">
+      <input id="newLessonName" placeholder="Lesson name (e.g. Lesson 04)">
+      <input id="newLessonUnit" placeholder="Unit (e.g. UNIT 04 — ...)">
+      <button id="addLessonBtn" type="button">+ Add Lesson</button>
+    </div>
   </div>
 
   <div class="layout">
@@ -230,23 +209,12 @@
 
   const db = window.FLP.db;
 
-  // =========================================================
-  // LOAD LESSON CONFIG (ep list + titles) — reuses each lesson's
-  // OWN data.js as the single source of truth, same trick Home.html
-  // uses for its search index. No video URLs are in data.js anymore,
-  // so this is completely safe to load for the UI.
-  //
-  // NOTE: these declarations MUST come before the GATE block below,
-  // since a successful admin check calls initAdmin() immediately —
-  // and initAdmin() needs LESSON_FOLDERS / loadLessons to already
-  // exist at that point (const bindings are not usable before the
-  // line that defines them actually runs).
-  // =========================================================
+  // These MUST be declared before the GATE block (initAdmin uses them).
   const LESSON_FOLDERS = [
     "All Lessons/Lesson 01 (2028)/",
     "All Lessons/Lesson 02 (2028)/",
     "All Lessons/Lesson 03 (2028)/"
-    // add new lesson folder paths here as new lessons are created
+    // add new lesson folder paths here if you create a lesson folder with data.js
   ];
 
   function loadLessonScript(src){
@@ -259,28 +227,56 @@
     });
   }
 
+  const pad2 = n => String(n).padStart(2, '0');
+
+  // data.js lessons + lessons/episodes added from this admin panel (Firebase)
   async function loadLessons(){
     const lessons = [];
     for (const folder of LESSON_FOLDERS){
       window.CURRENT_LESSON = null;
       const ok = await loadLessonScript(folder + 'data.js');
       if (ok && window.CURRENT_LESSON){
-        lessons.push(window.CURRENT_LESSON);
+        const l = window.CURRENT_LESSON;
+        lessons.push({ ...l, episodes: [...(l.episodes || [])] });
       }
     }
+
+    try{
+      const [lSnap, eSnap] = await Promise.all([
+        get(ref(db, 'customLessons')),
+        get(ref(db, 'customEpisodes'))
+      ]);
+      const customL = lSnap.exists() ? lSnap.val() : {};
+      const customE = eSnap.exists() ? eSnap.val() : {};
+
+      for (const [id, l] of Object.entries(customL)){
+        if (!lessons.find(x => x.lessonId === id)){
+          lessons.push({ lessonId: id, lesson: l.lesson, unit: l.unit || '', episodes: [] });
+        }
+      }
+      for (const lesson of lessons){
+        const extra = customE[lesson.lessonId] || {};
+        for (const [ep, v] of Object.entries(extra)){
+          const n = Number(ep);
+          const existing = lesson.episodes.find(e => Number(e.ep) === n);
+          if (existing) existing.title = v.title;
+          else lesson.episodes.push({ ep: pad2(n), title: v.title, custom: true });
+        }
+        lesson.episodes.sort((a, b) => Number(a.ep) - Number(b.ep));
+      }
+    }catch(err){ console.warn('custom lessons load failed', err); }
+
     return lessons;
   }
 
   let LESSONS = [];
-  let USERS = {}; // uid -> profile
+  let USERS = {};
   let selectedUid = null;
 
-  // =========================================================
   // GATE: only admins get past this point.
-  // =========================================================
   const { user, isAdmin } = await window.FLP.ready;
   if (!user) {
-    // access-control.js already redirects to login; nothing more to do.
+    // access-control.js already redirects to login.
   } else if (!isAdmin) {
     gate.innerHTML = `
       <h1>🚫 ACCESS DENIED</h1>
@@ -310,15 +306,25 @@
     document.getElementById('searchBox').addEventListener('input', (e)=>{
       renderStudentList(e.target.value.trim().toLowerCase());
     });
+
+    document.getElementById('addLessonBtn').addEventListener('click', async () => {
+      const id   = document.getElementById('newLessonId').value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
+      const name = document.getElementById('newLessonName').value.trim();
+      const unit = document.getElementById('newLessonUnit').value.trim();
+      if (!id || !name){ showToast('Lesson ID & name danna', false); return; }
+      if (LESSONS.find(l => l.lessonId === id)){ showToast('Me ID eka already thiyenawa', false); return; }
+      try{
+        await set(ref(db, `customLessons/${id}`), { lesson: name, unit });
+        LESSONS = await loadLessons();
+        renderLessonLocks();
+        if (selectedUid) renderDetail(selectedUid);
+        ['newLessonId','newLessonName','newLessonUnit'].forEach(i => document.getElementById(i).value = '');
+        showToast('Lesson added ✓', true);
+      }catch(e){ showToast('Failed: ' + e.message, false); }
+    });
   }
 
-  // =========================================================
   // SITE-WIDE LESSON LOCK PANEL
-  // Locking a lesson here blocks EVERY student from opening it
-  // (checked on Home.html / the episode pages via
-  // window.FLP.isLessonLocked), regardless of any per-student
-  // unlock set further down in the student detail view.
-  // =========================================================
   async function renderLessonLocks(){
     const panel = document.getElementById('lessonLocksPanel');
 
@@ -424,6 +430,7 @@
       const lessonAccess = access[lessonId] || {};
       const isFull = !!lessonAccess.full;
       const epAccess = lessonAccess.episodes || {};
+      const nextEp = lesson.episodes.length ? Math.max(...lesson.episodes.map(e => Number(e.ep))) + 1 : 1;
 
       html += `
         <div class="lesson-block" data-lesson="${lessonId}">
@@ -450,13 +457,22 @@
                 <span class="tag">EP ${e.ep}</span>
                 <span class="name">${escapeHtml(e.title)}</span>
               </div>
-              <label class="switch">
-                <input type="checkbox" class="ep-toggle" ${epAccess[e.ep] ? 'checked' : ''}
-                  data-uid="${uid}" data-lesson="${lessonId}" data-ep="${e.ep}">
-                <span class="slider"></span>
-              </label>
+              <div class="ep-actions">
+                ${e.custom ? `<button type="button" class="del-ep-btn" data-lesson="${lessonId}" data-ep="${e.ep}">✕</button>` : ''}
+                <label class="switch">
+                  <input type="checkbox" class="ep-toggle" ${epAccess[e.ep] ? 'checked' : ''}
+                    data-uid="${uid}" data-lesson="${lessonId}" data-ep="${e.ep}">
+                  <span class="slider"></span>
+                </label>
+              </div>
             </div>
           `).join('')}
+
+          <div class="add-form add-ep" data-lesson="${lessonId}">
+            <input type="number" class="new-ep-num" min="1" value="${nextEp}">
+            <input type="text" class="new-ep-title" placeholder="New episode title">
+            <button type="button" class="add-ep-btn">+ Add EP</button>
+          </div>
 
           <details class="video-manager">
             <summary>⚙ Manage YouTube links for ${escapeHtml(lesson.lesson)}</summary>
@@ -499,6 +515,36 @@
           showToast('Failed to save: ' + e.message, false);
           el.checked = !el.checked;
         }
+      });
+    });
+
+    document.querySelectorAll('.add-ep-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const box = btn.closest('.add-ep');
+        const lessonId = box.dataset.lesson;
+        const num = parseInt(box.querySelector('.new-ep-num').value, 10);
+        const title = box.querySelector('.new-ep-title').value.trim();
+        if (!num || !title){ showToast('EP number & title danna', false); return; }
+        const ep = pad2(num);
+        try{
+          await set(ref(db, `customEpisodes/${lessonId}/${ep}`), { title });
+          LESSONS = await loadLessons();
+          renderDetail(selectedUid);
+          showToast(`${lessonId} EP${ep} added ✓`, true);
+        }catch(e){ showToast('Failed: ' + e.message, false); }
+      });
+    });
+
+    document.querySelectorAll('.del-ep-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const { lesson, ep } = btn.dataset;
+        if (!confirm(`${lesson} EP${ep} delete karanna ona da?`)) return;
+        try{
+          await remove(ref(db, `customEpisodes/${lesson}/${ep}`));
+          LESSONS = await loadLessons();
+          renderDetail(selectedUid);
+          showToast('EP removed ✓', true);
+        }catch(e){ showToast('Failed: ' + e.message, false); }
       });
     });
   }
