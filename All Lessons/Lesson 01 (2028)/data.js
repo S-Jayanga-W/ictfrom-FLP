@@ -29,6 +29,6 @@ window.CURRENT_LESSON = {
     { ep:"08", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.21", title:"P8 | Basic Concepts of ICT ", tags:"| Benefits Of ICT |Issues Caused By ICT | Social Issures | Health Issures | Economical Issures | ", duration:"01:27:26", thumb:"thumbnails/8.png" },
     { ep:"09", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.28", title:"P9 | Basic Concepts of ICT ", tags:"| Issues Caused By ICT | Enviromental Issures | Ethical Issues Privacy Issures | Legal Issues | ", duration:"01:36:27", thumb:"thumbnails/9.png" },
     { ep:"10", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.05", title:"P10 | Basic Concepts of ICT ", tags:"| Basic Components Of A Computer | Hard Ware | Soft Ware | Firm Ware | Live Ware | ", duration:"01:42:33", thumb:"thumbnails/10.png" },
-    { ep:"11", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.19", title:"P11 | Basic Concepts of ICT ", tags:"| Issues Caused By ICT | Abstract Modle Of Infrormation | How To Protect Data | ", duration:"01:26:09", thumb:"11.png" }
+    { ep:"11", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.19", title:"P11 | Basic Concepts of ICT ", tags:"| Issues Caused By ICT | Abstract Modle Of Infrormation | How To Protect Data | ", duration:"01:26:09", thumb:"thumbnails/11.png" }
   ]
 };
