@@ -10,8 +10,11 @@
    (or "../../assets/spider-cursor.js" from a nested page)
    right before </body> on every page.
    ========================================================= */
+
+/*
+
 (function () {
-  "use strict";
+  "use strict"; 
 
   // Respect users who prefer reduced motion
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -329,3 +332,6 @@
 
   requestAnimationFrame(draw);
 })();
+
+
+*/
