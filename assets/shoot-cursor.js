@@ -10,6 +10,9 @@
    Usage: <script src="assets/shoot-cursor.js"></script>
    right before </body>.
    ========================================================= */
+
+/*
+
 (function () {
   "use strict";
 
@@ -287,3 +290,5 @@
 
   requestAnimationFrame(draw);
 })();
+
+*/
