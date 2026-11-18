@@ -291,6 +291,9 @@
     .video-title{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px; margin-bottom:6px; }
     .video-meta{ color:var(--muted); font-size:12.5px; }
 
+    /* ---------- paper discussion playlist section ---------- */
+    .playlist-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+
     /* ---------- locked lesson state ---------- */
     .locked-badge{
       position:absolute; top:9px; right:9px; z-index:3;
@@ -444,6 +447,7 @@
       .strip{ grid-template-columns:1fr; }
       .strip-item:first-child{ border-right:none; border-bottom:1px solid var(--line); }
       .video-grid{ grid-template-columns:1fr; }
+      .playlist-grid{ grid-template-columns:1fr; }
       .nav-links{ display:none; }
       .nav-search{ max-width:none; order:3; flex-basis:100%; }
       .note-row{ flex-direction:column; align-items:flex-start; gap:12px; }
@@ -476,6 +480,7 @@
     <div class="logo"><span class="bracket">&lt;</span>ictfrom | FLP<span class="bracket">/&gt;</span><span class="cursor"></span></div>
     <div class="nav-links">
       <a href="#videos">Videos</a>
+      <a href="#paper-discussion">Paper Discussion</a>
       <a href="#notes">Notes</a>
       <a href="#about">About</a>
     </div>
@@ -627,6 +632,40 @@
       </a>
 
       <!-- Location for new lessons upload -->
+
+    </div>
+  </section>
+
+  <!-- PAPER DISCUSSION (separate from lessons, no lock system) -->
+  <section class="section" id="paper-discussion">
+    <div class="section-head reveal">
+      <div>
+        <span class="tag">// paper_discussion</span>
+        <h2>Paper Discussion Playlist</h2>
+      </div>
+      <p>මෙහි ඇතුළත් සියලුම Video පටයහි අයිතිය ictfromabc ආයතනයේ Ravidu Bandaranayake ගුරුතුමා සතුව පවතින බව දැනුම් දෙමි.</p>
+    </div>
+
+    <div class="playlist-grid">
+
+      <a href="PASTE_YOUR_PLAYLIST_LINK_HERE" target="_blank" rel="noopener">
+        <div class="video-card reveal" data-tags="paper discussion paper discution past paper al ict playlist">
+          <div class="thumb">
+            <img src="Lessons/paper-discussion.png" alt="Paper Discussion" class="thumb-img">
+            <span class="ep-tag">Paper Discussion</span>
+            <div class="play">▶</div>
+            <span class="duration">PLAYLIST</span>
+          </div>
+          <div class="video-body">
+            <span class="video-topic">Playlist | Paper Discussion</span>
+            <div class="video-title">AL ICT Paper Discussion</div>
+            <div class="video-meta">© ictfromabc | Ravidu.Bandaranayake <br>
+              » Contact for Join ictfromabc , 071 455 5513</div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Aluth paper discussion playlist add karanna ona nam, uda card eka copy karala methana paste karanna -->
 
     </div>
   </section>
@@ -962,6 +1001,10 @@
      admin.html's "Lesson Access (site-wide)" panel, and shows
      the popup message instead. Also dims/badges the card once
      we know it's locked, so it's obvious before the click too.
+
+     NOTE: this only watches '.video-grid > a' (the lessons).
+     The Paper Discussion section uses '.playlist-grid', so it is
+     NOT affected by the lock system at all.
 
      An admin account is NOT blocked here, so an admin can still
      open a locked lesson from the normal site to check it.
