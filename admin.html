@@ -250,6 +250,12 @@
     // add new lesson folder paths here as new lessons are created
   ];
 
+  // Name shown in admin panel for a folder (overrides the "lesson:" value
+  // inside that folder's data.js, so a copied data.js can't show a wrong name).
+  const LESSON_NAME_OVERRIDES = {
+    "All Lessons/Paper Discussion/": "Paper Discussion"
+  };
+
   function loadLessonScript(src){
     return new Promise((resolve)=>{
       const s = document.createElement('script');
@@ -266,9 +272,21 @@
       window.CURRENT_LESSON = null;
       const ok = await loadLessonScript(folder + 'data.js');
       if (ok && window.CURRENT_LESSON){
-        lessons.push(window.CURRENT_LESSON);
+        const ld = Object.assign({}, window.CURRENT_LESSON);
+        if (LESSON_NAME_OVERRIDES[folder]) ld.lesson = LESSON_NAME_OVERRIDES[folder];
+        lessons.push(ld);
       }
     }
+
+    // Warn if two folders share the same lessonId (they would share lock/permissions)
+    const seen = {};
+    lessons.forEach(l => {
+      if (seen[l.lessonId]){
+        console.warn('DUPLICATE lessonId:', l.lessonId, '-> fix it in that lesson\'s data.js');
+        setTimeout(()=>showToast('⚠ Duplicate lessonId "' + l.lessonId + '" — fix data.js', false), 1500);
+      }
+      seen[l.lessonId] = true;
+    });
     return lessons;
   }
 
@@ -330,7 +348,7 @@
 
     panel.innerHTML = LESSONS.map(l => `
       <div class="lock-row" data-lesson="${l.lessonId}">
-        <span class="lname" id="lname-${l.lessonId}">${escapeHtml(l.lesson)}</span>
+        <span class="lname" id="lname-${l.lessonId}">${escapeHtml(l.lesson)} <small style="color:var(--grey);font-size:11px;">(${escapeHtml(l.lessonId)})</small></span>
         <label class="switch">
           <input type="checkbox" class="lesson-lock-toggle" data-lesson="${l.lessonId}">
           <span class="slider"></span>
