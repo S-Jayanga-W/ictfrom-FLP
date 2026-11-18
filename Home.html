@@ -636,7 +636,7 @@
     </div>
   </section>
 
-  <!-- PAPER DISCUSSION (separate from lessons, no lock system) -->
+  <!-- PAPER DISCUSSION (lockable from admin.html like a lesson) -->
   <section class="section" id="paper-discussion">
     <div class="section-head reveal">
       <div>
@@ -872,7 +872,8 @@
   const LESSON_FOLDERS = [
     "All Lessons/Lesson 01 (2028)/",
     "All Lessons/Lesson 02 (2028)/",
-    "All Lessons/Lesson 03 (2028)/"
+    "All Lessons/Lesson 03 (2028)/",
+    "All Lessons/Paper Discussion/"
     // add new lesson folder paths here as new lessons are created
   ];
 
@@ -1002,9 +1003,9 @@
      the popup message instead. Also dims/badges the card once
      we know it's locked, so it's obvious before the click too.
 
-     NOTE: this only watches '.video-grid > a' (the lessons).
-     The Paper Discussion section uses '.playlist-grid', so it is
-     NOT affected by the lock system at all.
+     NOTE: this watches both '.video-grid > a' (lessons) and
+     '.playlist-grid > a' (Paper Discussion), so Paper Discussion
+     is lockable from admin.html just like a normal lesson.
 
      An admin account is NOT blocked here, so an admin can still
      open a locked lesson from the normal site to check it.
@@ -1050,7 +1051,7 @@
   // ever ONE handler that gets to act on the click, period.
   // =========================================================
   document.addEventListener('click', async (e) => {
-    const a = e.target.closest('.video-grid > a');
+    const a = e.target.closest('.video-grid > a, .playlist-grid > a');
     if (!a) return;
 
     e.preventDefault();
@@ -1092,7 +1093,7 @@
     const { isAdmin } = await window.FLP.ready;
     if (isAdmin) return;
 
-    document.querySelectorAll('.video-grid > a').forEach(async (a) => {
+    document.querySelectorAll('.video-grid > a, .playlist-grid > a').forEach(async (a) => {
       const lessonId = await resolveLessonId(a);
       if (!lessonId) return;
 
