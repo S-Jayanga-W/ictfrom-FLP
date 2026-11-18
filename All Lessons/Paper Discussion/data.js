@@ -1,0 +1,34 @@
+// =========================================================
+// SINGLE SOURCE OF TRUTH for Lesson 01 episode data.
+// Both this lesson's own script.js AND the site-wide Home.html
+// search read from this ONE file. Edit episodes ONLY here —
+// never re-type them anywhere else.
+//
+// NOTE — YOUTUBE LINKS MOVED TO FIREBASE:
+// The actual YouTube URL for each episode is NO LONGER stored
+// here. It now lives in the Firebase Realtime Database under
+//   lessonVideos/<lessonId>/<ep>
+// and is only readable by a student once an admin unlocks that
+// lesson/episode for them (see admin.html + firebase-rules.json).
+// This "lessonId" below is the key used for that lookup — keep
+// it unique per lesson and don't change it after students have
+// been given access, or their unlocks will stop matching.
+// =========================================================
+window.CURRENT_LESSON = {
+  lessonId: "lesson01",
+  lesson: "Lesson 01",
+  unit: "UNIT 01 — BASIC CONCEPTS OF ICT",
+  episodes: [
+    { ep:"01", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.03.03", title:"P1 | Basic Concepts of ICT ", tags:"| Data & Information | Data Processing | Classification Of Data & Information | Charcteristics Of Usefull Information | ", duration:"02:01:14", thumb:"thumbnails/1.png" },
+    { ep:"02", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.03.10", title:"P2 | Basic Concepts of ICT ", tags:"| Golden Rule Of Information | Big Data | Life Cycle Of Data | ", duration:"01:48:05", thumb:"thumbnails/2.png" },
+    { ep:"03", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.03.17", title:"P3 | Basic Concepts of ICT ", tags:"| Applicability Of Information In Day To Day Life | Drawbacks Of Manual Mathods In Manipulating Data And Information | Infeasibility Of Applying Manual Method Where They Can Be Harmful Ot Humans | Emergence Of ICT Era | ", duration:"02:17:01", thumb:"thumbnails/3.png" },
+    { ep:"04", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.03.24", title:"P4 | Basic Concepts of ICT ", tags:"| Computer Networks | Classification Of Network By Structure | Classification Of Networks By Distribution | The Internet | WWW | HTTP | Web Page | Web Site | IP Address | Domain Names | ISP | DNS | Web Browsers | ", duration:"02:14:12", thumb:"thumbnails/4.png" },
+    { ep:"05", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.03.31", title:"P5 | Basic Concepts of ICT ", tags:"| Hyperlink | URL | Data Transmissoin Modes | Multiplexing (TDM,FDM,CDM) | Cloud Computing | Video Conferencing | ", duration:"01:49:35", thumb:"thumbnails/5.png" },
+    { ep:"06", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.07", title:"P6 | Basic Concepts of ICT ", tags:"| Stages Of Data Processing | Data Validation Methods | Data Input Methods | Data Processing Methods | Data Output Methods | ", duration:"02:08:06", thumb:"thumbnails/6.png" },
+    { ep:"07", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.21", title:"P7 | Basic Concepts of ICT ", tags:"| Benefits Of ICT |Issues Caused By ICT | Social Issures | Health Issures | Economical Issures | ", duration:"41:08", thumb:"thumbnails/7.png" },
+    { ep:"08", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.21", title:"P8 | Basic Concepts of ICT ", tags:"| Benefits Of ICT |Issues Caused By ICT | Social Issures | Health Issures | Economical Issures | ", duration:"01:27:26", thumb:"thumbnails/8.png" },
+    { ep:"09", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.04.28", title:"P9 | Basic Concepts of ICT ", tags:"| Issues Caused By ICT | Enviromental Issures | Ethical Issues Privacy Issures | Legal Issues | ", duration:"01:36:27", thumb:"thumbnails/9.png" },
+    { ep:"10", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.05", title:"P10 | Basic Concepts of ICT ", tags:"| Basic Components Of A Computer | Hard Ware | Soft Ware | Firm Ware | Live Ware | ", duration:"01:42:33", thumb:"thumbnails/10.png" },
+    { ep:"11", unit:"UNIT 01 — BASIC CONCEPTS OF ICT |26.05.19", title:"P11 | Basic Concepts of ICT ", tags:"| Issues Caused By ICT | Abstract Modle Of Infrormation | How To Protect Data | ", duration:"01:26:09", thumb:"thumbnails/11.png" }
+  ]
+};
