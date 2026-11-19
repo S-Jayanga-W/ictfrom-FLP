@@ -6,102 +6,44 @@
 <title>Watch | ictfrom | Free Learn Pack (FLP)</title>
 <link rel="icon" type="image/png" href="logo.png">
 
-<!-- =========================================================
-     LIGHTWEIGHT ANTI-DOWNLOAD HARDENING
-     This deters CASUAL copying only:
-       - right-click ("Save video/page as...", "Inspect") is blocked
-       - common DevTools / view-source / save-page shortcuts are blocked
-     IMPORTANT LIMITATION (be upfront about this with the site owner):
-     none of this can stop a browser extension or tool that captures
-     the video by watching the actual network requests the browser
-     makes to YouTube's own video CDN (googlevideo.com) while the
-     video plays. That traffic exists at the browser/network level,
-     completely outside what any front-end JavaScript on this page
-     is able to see or block. This script only removes the EASY,
-     no-effort routes (right-click menu, F12, view-source, Ctrl+S).
-     ========================================================= -->
+<!-- Lightweight anti-download hardening (deters CASUAL copying only).
+     It cannot stop tools that capture YouTube's network traffic. -->
 <script>
-  document.addEventListener('contextmenu', function(e){
-    e.preventDefault();
-  });
-
+  document.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('keydown', function(e){
     const k = e.key ? e.key.toLowerCase() : '';
-
-    // F12 - DevTools
     if (e.key === 'F12') { e.preventDefault(); return; }
-
-    // Ctrl+Shift+I / J / C - DevTools (inspect, console, element picker)
-    if (e.ctrlKey && e.shiftKey && (k === 'i' || k === 'j' || k === 'c')) {
-      e.preventDefault(); return;
-    }
-
-    // Ctrl+U - View Page Source
-    if (e.ctrlKey && k === 'u') { e.preventDefault(); return; }
-
-    // Ctrl+S - Save Page As
-    if (e.ctrlKey && k === 's') { e.preventDefault(); return; }
+    if (e.ctrlKey && e.shiftKey && (k === 'i' || k === 'j' || k === 'c')) { e.preventDefault(); return; }
+    if (e.ctrlKey && (k === 'u' || k === 's')) { e.preventDefault(); return; }
   });
 </script>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <style>
   :root{
-    --black:#0a0a0a;
-    --panel:#141110;
-    --panel2:#1b1615;
-    --line:#2a2422;
-    --red:#e5121a;
-    --red-dim:#7a0c11;
-    --white:#f5f5f5;
-    --grey:#8a8a8a;
-    --green:#2ecc71;
+    --black:#0a0a0a; --panel:#141110; --panel2:#1b1615; --line:#2a2422;
+    --red:#e5121a; --red-dim:#7a0c11; --white:#f5f5f5; --grey:#8a8a8a; --green:#2ecc71;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html,body{ height:100%; }
   body{
-    font-family:'Consolas','Courier New',monospace;
-    background:var(--black);
-    color:var(--white);
-    min-height:100vh;
-    position:relative;
-    overflow-x:hidden;
-    /* Extra deterrent: text on the page (not the YouTube video itself,
-       which is a separate iframe and unaffected by this) can't be
-       selected/dragged as easily. */
-    user-select:none;
-    -webkit-user-select:none;
+    font-family:'Consolas','Courier New',monospace; background:var(--black); color:var(--white);
+    min-height:100vh; position:relative; overflow-x:hidden;
+    user-select:none; -webkit-user-select:none;
   }
   a{ color:inherit; }
 
-  /* ===== Animated background ===== */
-  #bgCanvas{
-    position:fixed;
-    inset:0;
-    width:100%;
-    height:100%;
-    z-index:0;
-    pointer-events:none;
-    display:block;
-  }
+  #bgCanvas{ position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; display:block; }
   .bg-glow{
-    position:fixed;
-    inset:0;
-    z-index:0;
-    pointer-events:none;
+    position:fixed; inset:0; z-index:0; pointer-events:none;
     background:
       radial-gradient(600px 400px at 15% 10%, rgba(229,18,26,.12), transparent 60%),
       radial-gradient(700px 500px at 85% 30%, rgba(229,18,26,.08), transparent 60%),
       radial-gradient(800px 600px at 50% 100%, rgba(229,18,26,.10), transparent 60%);
     animation:bgShift 16s ease-in-out infinite alternate;
   }
-  @keyframes bgShift{
-    0%{ filter:hue-rotate(0deg) brightness(1); }
-    100%{ filter:hue-rotate(8deg) brightness(1.08); }
-  }
+  @keyframes bgShift{ 0%{ filter:hue-rotate(0deg) brightness(1); } 100%{ filter:hue-rotate(8deg) brightness(1.08); } }
 
   header.topbar, main{ position:relative; z-index:1; }
-
   header.topbar{
     display:flex; align-items:center; justify-content:space-between;
     padding:16px 24px; border-bottom:1px solid var(--line);
@@ -111,172 +53,127 @@
   header.topbar .brand img{ width:30px; height:30px; border-radius:6px; }
   header.topbar .brand span{ color:var(--red); }
   header.topbar a.back{
-    display:flex; align-items:center; gap:6px;
-    text-decoration:none; color:var(--grey); font-size:13px;
+    display:flex; align-items:center; gap:6px; text-decoration:none; color:var(--grey); font-size:13px;
     border:1px solid var(--line); padding:8px 14px; border-radius:6px; transition:.2s;
   }
   header.topbar a.back:hover{ border-color:var(--red); color:var(--white); }
 
-  #status{
-    text-align:center; color:var(--grey); margin-top:120px; font-size:14px; line-height:1.8;
-  }
+  #status{ text-align:center; color:var(--grey); margin-top:120px; font-size:14px; line-height:1.8; }
   .spinner{
-    width:34px; height:34px; border-radius:50%;
-    border:3px solid var(--line); border-top-color:var(--red);
-    margin:0 auto 16px; animation:spin 0.8s linear infinite;
+    width:34px; height:34px; border-radius:50%; border:3px solid var(--line); border-top-color:var(--red);
+    margin:0 auto 16px; animation:spin .8s linear infinite;
   }
   @keyframes spin{ to{ transform:rotate(360deg); } }
 
   .lock-box{
     background:var(--panel); border:1px solid var(--line); border-radius:14px;
-    padding:44px 26px; text-align:center; max-width:440px; margin:100px auto 0;
-    animation:fadeUp .4s ease;
+    padding:44px 26px; text-align:center; max-width:440px; margin:100px auto 0; animation:fadeUp .4s ease;
   }
   .lock-box .icon{ font-size:38px; margin-bottom:12px; }
   .lock-box .title{ font-size:15px; font-weight:700; }
   .lock-box p{ color:var(--grey); font-size:13px; margin-top:10px; line-height:1.7; }
   .lock-box a.btn{
-    display:inline-block; margin-top:20px; text-decoration:none;
-    background:var(--red); color:#fff; padding:11px 22px; border-radius:8px;
-    font-size:13px; font-weight:700; transition:.2s;
+    display:inline-block; margin-top:20px; text-decoration:none; background:var(--red); color:#fff;
+    padding:11px 22px; border-radius:8px; font-size:13px; font-weight:700; transition:.2s;
   }
   .lock-box a.btn:hover{ background:#c40e15; }
-
   @keyframes fadeUp{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:translateY(0);} }
 
-  main{
-    max-width:1040px; margin:0 auto; padding:26px 20px 60px;
-  }
-
+  main{ max-width:1040px; margin:0 auto; padding:26px 20px 60px; }
   .player-wrap{ display:none; animation:fadeUp .4s ease; }
   .player-wrap.ready{ display:block; }
 
   /* ===== Custom player shell ===== */
   .video-frame{
-    position:relative; width:100%; padding-top:56.25%;
-    background:#000; border-radius:14px; overflow:hidden;
-    border:1px solid var(--line);
-    box-shadow:0 20px 50px -20px rgba(0,0,0,.7);
+    position:relative; width:100%; padding-top:56.25%; background:#000; border-radius:14px; overflow:hidden;
+    border:1px solid var(--line); box-shadow:0 20px 50px -20px rgba(0,0,0,.7);
   }
-  .video-frame iframe{
-    position:absolute; inset:0; width:100%; height:100%; border:0;
-    z-index:0;
-    pointer-events:none; /* iframe never receives direct clicks - fully controlled via JS API */
-  }
+  .video-frame iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; z-index:0; pointer-events:none; }
 
-  /* Full-cover invisible layer. This is what actually receives every click/tap
-     over the video area. Because the iframe itself has pointer-events:none,
-     there is no way for a viewer to reach YouTube's own share icon, logo
-     watermark, title bar, or "suggested videos" pause screen - none of that
-     chrome is ever clickable, since input never reaches the iframe. */
-  .yt-shield{
-    position:absolute; inset:0; z-index:1;
-    background:transparent; cursor:pointer;
-  }
+  /* Invisible layer that receives all clicks over the video */
+  .yt-shield{ position:absolute; inset:0; z-index:1; background:transparent; cursor:pointer; }
 
-  /* Our own control bar, drawn on top of everything */
+  /* ===== NATIVE MODE (fix for "Sign in to confirm you're not a bot") =====
+     Shield + custom bar are removed and the iframe becomes clickable, so the
+     viewer can press YouTube's own "Sign in" button. */
+  .video-frame.native-mode iframe{ pointer-events:auto; z-index:3; }
+  .video-frame.native-mode .yt-shield,
+  .video-frame.native-mode .custom-controls{ display:none; }
+  .video-frame.native-mode::after{ display:none; }
+
+  /* Fallback bar shown when the video does not start */
+  .yt-fallback{
+    position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:5;
+    display:none; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center;
+    max-width:94%; padding:10px 14px; border-radius:12px; font-size:12px; line-height:1.5;
+    background:rgba(12,10,10,.92); border:1px solid var(--red-dim);
+    box-shadow:0 8px 24px -10px rgba(0,0,0,.8); text-align:center;
+  }
+  .yt-fallback.show{ display:flex; }
+  .yt-fallback button{
+    background:var(--red); color:#fff; border:none; padding:7px 14px; border-radius:7px;
+    font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; transition:.2s;
+  }
+  .yt-fallback button:hover{ background:#c40e15; }
+  .yt-fallback button.ghost{ background:transparent; border:1px solid var(--line); color:var(--white); }
+  .yt-fallback button.ghost:hover{ border-color:var(--red); }
+
   .custom-controls{
     position:absolute; left:10px; right:10px; bottom:10px; z-index:2;
-    display:flex; align-items:center; gap:12px;
-    padding:8px 14px;
-    border-radius:12px;
-    background:rgba(12,10,10,.62);
-    backdrop-filter:blur(10px);
-    -webkit-backdrop-filter:blur(10px);
-    border:1px solid rgba(255,255,255,.06);
-    box-shadow:0 8px 24px -10px rgba(0,0,0,.6);
-    opacity:1; transform:translateY(0);
-    transition:opacity .28s ease, transform .28s ease;
+    display:flex; align-items:center; gap:12px; padding:8px 14px; border-radius:12px;
+    background:rgba(12,10,10,.62); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.06); box-shadow:0 8px 24px -10px rgba(0,0,0,.6);
+    opacity:1; transform:translateY(0); transition:opacity .28s ease, transform .28s ease;
   }
-  /* extra gradient behind the bar so it stays legible over bright video frames */
   .video-frame::after{
     content:''; position:absolute; left:0; right:0; bottom:0; height:90px; z-index:1;
     background:linear-gradient(0deg, rgba(0,0,0,.55) 0%, transparent 100%);
-    pointer-events:none;
-    opacity:1; transition:opacity .28s ease;
+    pointer-events:none; opacity:1; transition:opacity .28s ease;
   }
-  .custom-controls.hidden,
-  .video-frame.controls-hidden::after{
-    opacity:0;
-  }
-  .custom-controls.hidden{
-    transform:translateY(8px);
-    pointer-events:none;
-  }
+  .custom-controls.hidden, .video-frame.controls-hidden::after{ opacity:0; }
+  .custom-controls.hidden{ transform:translateY(8px); pointer-events:none; }
 
   .cc-btn{
-    background:none; border:none; color:var(--white); font-size:17px;
-    cursor:pointer; padding:4px; line-height:1; flex:none;
-    display:flex; align-items:center; justify-content:center;
-    transition:color .15s, transform .15s;
+    background:none; border:none; color:var(--white); font-size:17px; cursor:pointer; padding:4px; line-height:1;
+    flex:none; display:flex; align-items:center; justify-content:center; transition:color .15s, transform .15s;
   }
   .cc-btn:hover{ color:var(--red); transform:scale(1.1); }
+  .cc-time{ color:#cfcfcf; font-size:11px; white-space:nowrap; flex:none; min-width:110px; font-variant-numeric:tabular-nums; }
 
-  /* min-width widened so H:MM:SS / H:MM:SS fits without the bar jumping around */
-  .cc-time{
-    color:#cfcfcf; font-size:11px; white-space:nowrap; flex:none; min-width:110px;
-    font-variant-numeric:tabular-nums;
-  }
-
-  .cc-progress{
-    position:relative; flex:1; height:16px; display:flex; align-items:center; cursor:pointer; touch-action:none;
-  }
+  .cc-progress{ position:relative; flex:1; height:16px; display:flex; align-items:center; cursor:pointer; touch-action:none; }
   .cc-progress::before{
     content:''; position:absolute; left:0; right:0; height:4px; border-radius:3px;
-    background:rgba(255,255,255,.2);
-    transition:height .15s ease;
+    background:rgba(255,255,255,.2); transition:height .15s ease;
   }
   .cc-progress-fill{
-    position:absolute; left:0; height:4px; border-radius:3px; width:0%;
-    background:var(--red); pointer-events:none;
-    transition:height .15s ease;
+    position:absolute; left:0; height:4px; border-radius:3px; width:0%; background:var(--red);
+    pointer-events:none; transition:height .15s ease;
   }
   .cc-progress-handle{
-    position:absolute; left:0%; width:12px; height:12px; border-radius:50%;
-    background:var(--red); transform:translateX(-50%) scale(0);
-    pointer-events:none; transition:transform .15s ease;
+    position:absolute; left:0%; width:12px; height:12px; border-radius:50%; background:var(--red);
+    transform:translateX(-50%) scale(0); pointer-events:none; transition:transform .15s ease;
     box-shadow:0 0 0 4px rgba(229,18,26,.22);
   }
   .cc-progress:hover::before{ height:6px; }
   .cc-progress:hover .cc-progress-fill{ height:6px; }
-  .cc-progress:hover .cc-progress-handle,
-  .cc-progress.seeking .cc-progress-handle{ transform:translateX(-50%) scale(1); }
+  .cc-progress:hover .cc-progress-handle, .cc-progress.seeking .cc-progress-handle{ transform:translateX(-50%) scale(1); }
 
-  /* Volume: just an icon by default, slider slides out smoothly on hover/focus */
-  .cc-volume-wrap{
-    display:flex; align-items:center; flex:none;
-    max-width:26px; overflow:hidden;
-    transition:max-width .25s ease;
-  }
-  .cc-volume-wrap:hover,
-  .cc-volume-wrap:focus-within{
-    max-width:110px;
-  }
-  .cc-volume{
-    width:70px; margin-left:8px; accent-color:var(--red);
-    flex:none; opacity:0; transition:opacity .2s ease .05s;
-  }
-  .cc-volume-wrap:hover .cc-volume,
-  .cc-volume-wrap:focus-within .cc-volume{
-    opacity:1;
-  }
+  .cc-volume-wrap{ display:flex; align-items:center; flex:none; max-width:26px; overflow:hidden; transition:max-width .25s ease; }
+  .cc-volume-wrap:hover, .cc-volume-wrap:focus-within{ max-width:110px; }
+  .cc-volume{ width:70px; margin-left:8px; accent-color:var(--red); flex:none; opacity:0; transition:opacity .2s ease .05s; }
+  .cc-volume-wrap:hover .cc-volume, .cc-volume-wrap:focus-within .cc-volume{ opacity:1; }
 
-  /* ===== Quality selector ===== */
   .cc-quality-wrap{ position:relative; flex:none; }
   .cc-menu{
-    position:absolute; right:0; bottom:calc(100% + 14px);
-    min-width:130px; padding:6px;
-    background:rgba(12,10,10,.92); border:1px solid var(--line);
-    border-radius:10px; backdrop-filter:blur(10px);
-    -webkit-backdrop-filter:blur(10px);
-    display:none; flex-direction:column; gap:2px;
-    box-shadow:0 8px 24px -10px rgba(0,0,0,.8);
+    position:absolute; right:0; bottom:calc(100% + 14px); min-width:130px; padding:6px;
+    background:rgba(12,10,10,.92); border:1px solid var(--line); border-radius:10px;
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    display:none; flex-direction:column; gap:2px; box-shadow:0 8px 24px -10px rgba(0,0,0,.8);
   }
   .cc-menu.open{ display:flex; }
   .cc-menu button{
-    background:none; border:none; color:var(--white); text-align:left;
-    font-family:inherit; font-size:12px; padding:8px 10px; border-radius:6px; cursor:pointer;
-    display:flex; justify-content:space-between; gap:12px;
+    background:none; border:none; color:var(--white); text-align:left; font-family:inherit; font-size:12px;
+    padding:8px 10px; border-radius:6px; cursor:pointer; display:flex; justify-content:space-between; gap:12px;
   }
   .cc-menu button:hover{ background:rgba(229,18,26,.18); }
   .cc-menu button.active{ color:var(--red); font-weight:700; }
@@ -290,8 +187,7 @@
 
   .video-frame:fullscreen{ padding-top:0; height:100vh; border-radius:0; }
   .video-frame:-webkit-full-screen{ padding-top:0; height:100vh; border-radius:0; }
-  .video-frame:fullscreen iframe,
-  .video-frame:-webkit-full-screen iframe{ height:100%; }
+  .video-frame:fullscreen iframe, .video-frame:-webkit-full-screen iframe{ height:100%; }
 
   .meta{
     margin-top:22px; padding-bottom:20px; border-bottom:1px solid var(--line);
@@ -299,17 +195,15 @@
   }
   .meta .left{ flex:1; min-width:240px; }
   .meta .ep-tag{
-    display:inline-block; color:var(--red); font-size:11px; font-weight:700;
-    letter-spacing:1.5px; border:1px solid var(--red-dim); padding:4px 10px;
-    border-radius:20px; margin-bottom:10px; background:rgba(229,18,26,.08);
+    display:inline-block; color:var(--red); font-size:11px; font-weight:700; letter-spacing:1.5px;
+    border:1px solid var(--red-dim); padding:4px 10px; border-radius:20px; margin-bottom:10px; background:rgba(229,18,26,.08);
   }
   .meta h1{ font-size:20px; line-height:1.4; margin-bottom:6px; }
   .meta .sub{ color:var(--grey); font-size:12px; }
 
   .badge-live{
     display:flex; align-items:center; gap:6px; color:var(--green); font-size:12px;
-    border:1px solid #1c5c38; padding:6px 12px; border-radius:20px; background:rgba(46,204,113,.08);
-    white-space:nowrap;
+    border:1px solid #1c5c38; padding:6px 12px; border-radius:20px; background:rgba(46,204,113,.08); white-space:nowrap;
   }
   .badge-live .dot{ width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulse 1.4s infinite; }
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
@@ -319,41 +213,23 @@
     padding:14px 16px; font-size:12px; color:var(--grey); line-height:1.7;
   }
 
-  /* ===== My Notes section ===== */
-  .my-notes{
-    margin-top:20px; background:var(--panel); border:1px solid var(--line); border-radius:12px;
-    padding:18px 18px 16px; animation:fadeUp .4s ease;
-  }
-  .my-notes .notes-head{
-    display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
-  }
-  .my-notes .notes-head h2{
-    font-size:13px; letter-spacing:1px; color:var(--white);
-    display:flex; align-items:center; gap:8px;
-  }
+  .my-notes{ margin-top:20px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 18px 16px; animation:fadeUp .4s ease; }
+  .my-notes .notes-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .my-notes .notes-head h2{ font-size:13px; letter-spacing:1px; color:var(--white); display:flex; align-items:center; gap:8px; }
   .my-notes .notes-head h2::before{ content:"📝"; font-size:14px; }
   .my-notes textarea{
-    width:100%; min-height:110px; resize:vertical;
-    background:var(--panel2); border:1px solid var(--line); border-radius:8px;
-    color:var(--white); font-family:inherit; font-size:13px; line-height:1.6;
-    padding:12px; outline:none; transition:border-color .2s;
-    /* Notes textarea needs normal text selection/typing even though the
-       rest of the page has user-select disabled above. */
-    user-select:text;
-    -webkit-user-select:text;
+    width:100%; min-height:110px; resize:vertical; background:var(--panel2); border:1px solid var(--line);
+    border-radius:8px; color:var(--white); font-family:inherit; font-size:13px; line-height:1.6;
+    padding:12px; outline:none; transition:border-color .2s; user-select:text; -webkit-user-select:text;
   }
   .my-notes textarea:focus{ border-color:var(--red-dim); }
-  .my-notes .notes-foot{
-    display:flex; align-items:center; justify-content:space-between; margin-top:10px; gap:10px; flex-wrap:wrap;
-  }
+  .my-notes .notes-foot{ display:flex; align-items:center; justify-content:space-between; margin-top:10px; gap:10px; flex-wrap:wrap; }
   .my-notes .save-btn{
     background:var(--red); color:#fff; border:none; padding:9px 18px; border-radius:8px;
     font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; transition:.2s;
   }
   .my-notes .save-btn:hover{ background:#c40e15; }
-  .my-notes .save-status{
-    font-size:11px; color:var(--grey); transition:opacity .3s; opacity:0;
-  }
+  .my-notes .save-status{ font-size:11px; color:var(--grey); transition:opacity .3s; opacity:0; }
   .my-notes .save-status.show{ opacity:1; }
   .my-notes .save-status.ok{ color:var(--green); }
 </style>
@@ -378,6 +254,13 @@
     <div class="video-frame" id="videoFrame">
       <div id="ytFrame"></div>
       <div class="yt-shield" id="ytShield"></div>
+
+      <!-- Shown only when the video fails to start (e.g. YouTube bot check) -->
+      <div class="yt-fallback" id="ytFallback">
+        <span>Video not starting? YouTube may be asking you to sign in.</span>
+        <button id="fbNative">Enable YouTube sign-in</button>
+        <button class="ghost" id="fbReload">Reload</button>
+      </div>
 
       <div class="custom-controls" id="customControls">
         <button class="cc-btn" id="ccPlayPause" aria-label="Play / Pause">▶</button>
@@ -410,9 +293,7 @@
     <div class="note-box">🔒 This video is playable because your account has been unlocked for this episode. Access is checked live from the server each time this page loads.</div>
 
     <div class="my-notes" id="myNotes">
-      <div class="notes-head">
-        <h2>MY NOTES</h2>
-      </div>
+      <div class="notes-head"><h2>MY NOTES</h2></div>
       <textarea id="notesArea" placeholder="Type your notes for this episode here... (saved automatically on this device)"></textarea>
       <div class="notes-foot">
         <button class="save-btn" id="saveNoteBtn">Save note</button>
@@ -426,74 +307,46 @@
 <script type="module" src="assets/access-control.js"></script>
 
 <script>
-  /* ===== Lightweight animated particle background ===== */
+  /* ===== Animated particle background ===== */
   (function(){
     const canvas = document.getElementById('bgCanvas');
     const ctx = canvas.getContext('2d');
     let w, h, particles;
-    const COUNT = 55;
-    const COLOR = '229,18,26'; // matches --red
+    const COUNT = 55, COLOR = '229,18,26';
 
-    function resize(){
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
-    }
-
+    function resize(){ w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
     function makeParticles(){
       particles = Array.from({length: COUNT}, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        r: Math.random() * 1.8 + 0.6,
-        vx: (Math.random() - 0.5) * 0.25,
-        vy: (Math.random() - 0.5) * 0.25,
-        a: Math.random() * 0.5 + 0.15
+        x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.8 + 0.6,
+        vx: (Math.random() - 0.5) * 0.25, vy: (Math.random() - 0.5) * 0.25, a: Math.random() * 0.5 + 0.15
       }));
     }
-
     function step(){
       ctx.clearRect(0, 0, w, h);
-
       for (const p of particles){
-        p.x += p.vx;
-        p.y += p.vy;
+        p.x += p.vx; p.y += p.vy;
         if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
         if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${COLOR},${p.a})`;
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${COLOR},${p.a})`; ctx.fill();
       }
-
       for (let i = 0; i < particles.length; i++){
         for (let j = i + 1; j < particles.length; j++){
           const a = particles[i], b = particles[j];
-          const dx = a.x - b.x, dy = a.y - b.y;
-          const dist = Math.sqrt(dx*dx + dy*dy);
+          const dx = a.x - b.x, dy = a.y - b.y, dist = Math.sqrt(dx*dx + dy*dy);
           if (dist < 120){
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.strokeStyle = `rgba(${COLOR},${0.08 * (1 - dist/120)})`;
-            ctx.lineWidth = 1;
-            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(${COLOR},${0.08 * (1 - dist/120)})`; ctx.lineWidth = 1; ctx.stroke();
           }
         }
       }
-
       requestAnimationFrame(step);
     }
-
     window.addEventListener('resize', () => { resize(); makeParticles(); });
-    resize();
-    makeParticles();
-    requestAnimationFrame(step);
+    resize(); makeParticles(); requestAnimationFrame(step);
   })();
 </script>
 
-<!-- YouTube IFrame Player API - lets us drive the video (play/pause/seek/volume)
-     purely via JavaScript, so the viewer never has to click on the iframe
-     itself (see .yt-shield above: iframe has pointer-events:none). -->
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
   let ytApiReady = false;
@@ -508,8 +361,9 @@
   window.pendingVideoId = null;
   let timeLoop = null;
   let userSeeking = false;
+  let everPlayed = false;
+  let startWatchdog = null;
 
-  /* Quality selector state (declared up here so every function can see it) */
   const QUALITY_LABELS = {
     hd2160:'2160p (4K)', hd1440:'1440p', hd1080:'1080p', hd720:'720p',
     large:'480p', medium:'360p', small:'240p', tiny:'144p'
@@ -524,7 +378,10 @@
       width: '100%',
       height: '100%',
       videoId: window.pendingVideoId,
-      host: 'https://www.youtube-nocookie.com',
+      /* FIX #1: use the normal youtube.com host (default) instead of
+         youtube-nocookie.com. The nocookie host never sends the viewer's
+         YouTube login, so the "Sign in to confirm you're not a bot" check
+         could never be passed even by signed-in users. */
       playerVars: {
         autoplay: 1,
         rel: 0,
@@ -538,26 +395,40 @@
       },
       events: {
         onReady: onPlayerReady,
-        onStateChange: onPlayerStateChange
+        onStateChange: onPlayerStateChange,
+        onError: showFallback
       }
     });
+
+    /* FIX #2: if the video hasn't started within 8s (bot check, blocked
+       autoplay, etc.) show the fallback bar. */
+    clearTimeout(startWatchdog);
+    startWatchdog = setTimeout(() => { if (!everPlayed) showFallback(); }, 8000);
   }
 
-  /* Time format:
-       - under 1 hour  ->  5:09
-       - 1 hour or more -> 1:05:09  (hour:minute:second)
-     If you want the hour ALWAYS shown (0:05:09), change the return to:
-       return h + ':' + pad(m) + ':' + pad(sec);                       */
+  /* ===== Fallback / native mode ===== */
+  function showFallback(){
+    if (everPlayed) return;
+    document.getElementById('ytFallback').classList.add('show');
+  }
+  function hideFallback(){
+    document.getElementById('ytFallback').classList.remove('show');
+  }
+  function enableNativeMode(){
+    // Lets the viewer click YouTube's own "Sign in" button inside the iframe.
+    document.getElementById('videoFrame').classList.add('native-mode');
+    hideFallback();
+  }
+  document.getElementById('fbNative').addEventListener('click', enableNativeMode);
+  document.getElementById('fbReload').addEventListener('click', () => location.reload());
+
   function formatTime(s){
     s = Math.max(0, Math.floor(s || 0));
     const h = Math.floor(s / 3600);
     const m = Math.floor((s % 3600) / 60);
     const sec = s % 60;
     const pad = n => String(n).padStart(2, '0');
-
-    return h > 0
-      ? h + ':' + pad(m) + ':' + pad(sec)
-      : m + ':' + pad(sec);
+    return h > 0 ? h + ':' + pad(m) + ':' + pad(sec) : m + ':' + pad(sec);
   }
 
   function setFill(frac){
@@ -593,6 +464,9 @@
   function onPlayerStateChange(e){
     const btn = document.getElementById('ccPlayPause');
     if (e.data === YT.PlayerState.PLAYING){
+      everPlayed = true;
+      clearTimeout(startWatchdog);
+      hideFallback();
       btn.textContent = '⏸';
       startTimeLoop();
       scheduleHideControls();
@@ -608,9 +482,7 @@
     }
   }
 
-  /* ===== Auto-hide controls (like YouTube/Netflix): visible while paused or
-     while the mouse/finger is active, fade out a couple seconds after the
-     mouse stops moving while the video is playing. ===== */
+  /* ===== Auto-hide controls ===== */
   let hideTimer = null;
 
   function isPlaying(){
@@ -619,10 +491,8 @@
   }
 
   function showControls(stayVisible){
-    const bar = document.getElementById('customControls');
-    const frame = document.getElementById('videoFrame');
-    bar.classList.remove('hidden');
-    frame.classList.remove('controls-hidden');
+    document.getElementById('customControls').classList.remove('hidden');
+    document.getElementById('videoFrame').classList.remove('controls-hidden');
     clearTimeout(hideTimer);
     if (!stayVisible) scheduleHideControls();
   }
@@ -651,13 +521,8 @@
 
     muteBtn.addEventListener('click', () => {
       if (!window.ytPlayer) return;
-      if (window.ytPlayer.isMuted()) {
-        window.ytPlayer.unMute();
-        muteBtn.textContent = '🔊';
-      } else {
-        window.ytPlayer.mute();
-        muteBtn.textContent = '🔇';
-      }
+      if (window.ytPlayer.isMuted()) { window.ytPlayer.unMute(); muteBtn.textContent = '🔊'; }
+      else { window.ytPlayer.mute(); muteBtn.textContent = '🔇'; }
     });
 
     volume.addEventListener('input', (e) => {
@@ -705,7 +570,6 @@
       }
     });
 
-    // Any mouse/touch activity over the player keeps (or brings back) the bar.
     frame.addEventListener('mousemove', () => showControls(false));
     frame.addEventListener('mouseenter', () => showControls(false));
     frame.addEventListener('touchstart', () => showControls(false), { passive:true });
@@ -732,9 +596,7 @@
     const menu = document.getElementById('ccQualityMenu');
     if (!window.ytPlayer || !window.ytPlayer.getAvailableQualityLevels) return;
 
-    const levels = (window.ytPlayer.getAvailableQualityLevels() || [])
-      .filter(q => QUALITY_LABELS[q]);
-
+    const levels = (window.ytPlayer.getAvailableQualityLevels() || []).filter(q => QUALITY_LABELS[q]);
     menu.innerHTML = '';
     const options = [['auto','Auto'], ...levels.map(q => [q, QUALITY_LABELS[q]])];
 
@@ -761,7 +623,6 @@
 
     try { p.setPlaybackQuality(q === 'auto' ? 'default' : q); } catch(e){}
 
-    // reload at same position - this is what makes YouTube actually re-pick the quality
     p.loadVideoById({
       videoId: window.pendingVideoId,
       startSeconds: t,
@@ -781,9 +642,7 @@
 </script>
 
 <script type="module">
-  function getParam(name){
-    return new URLSearchParams(window.location.search).get(name);
-  }
+  function getParam(name){ return new URLSearchParams(window.location.search).get(name); }
 
   function extractYouTubeId(input){
     if (!input) return null;
@@ -876,10 +735,6 @@
           </div>
         `;
       } else {
-        // Hand the raw videoId to the player (see createPlayer in the earlier
-        // script block) rather than building an embed URL ourselves - letting
-        // YT.Player construct its own iframe is what makes play/pause/seek
-        // actually respond when combined with the nocookie host.
         window.pendingVideoId = videoId;
 
         document.getElementById('epTag').textContent = 'EP ' + ep;
@@ -897,6 +752,6 @@
 </script>
 
 <script src="assets/ai-widget.js"></script>
-  <script src="assets/spider-cursor.js"></script>
+<script src="assets/spider-cursor.js"></script>
 </body>
 </html>
