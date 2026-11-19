@@ -171,6 +171,7 @@
     display:none; flex-direction:column; gap:2px; box-shadow:0 8px 24px -10px rgba(0,0,0,.8);
   }
   .cc-menu.open{ display:flex; }
+  .cc-speed-btn{ font-family:inherit; font-size:12px; font-weight:700; min-width:34px; }
   .cc-menu button{
     background:none; border:none; color:var(--white); text-align:left; font-family:inherit; font-size:12px;
     padding:8px 10px; border-radius:6px; cursor:pointer; display:flex; justify-content:space-between; gap:12px;
@@ -272,6 +273,10 @@
         <div class="cc-volume-wrap" id="ccVolumeWrap">
           <button class="cc-btn" id="ccMute" aria-label="Mute / Unmute">🔊</button>
           <input type="range" class="cc-volume" id="ccVolume" min="0" max="100" value="100" aria-label="Volume">
+        </div>
+        <div class="cc-quality-wrap" id="ccSpeedWrap">
+          <button class="cc-btn cc-speed-btn" id="ccSpeed" aria-label="Playback speed">1x</button>
+          <div class="cc-menu" id="ccSpeedMenu"></div>
         </div>
         <div class="cc-quality-wrap" id="ccQualityWrap">
           <button class="cc-btn" id="ccQuality" aria-label="Quality">⚙</button>
@@ -471,6 +476,9 @@
       startTimeLoop();
       scheduleHideControls();
       buildQualityMenu();
+      if (typeof currentRate !== 'undefined' && currentRate !== 1 && window.ytPlayer.setPlaybackRate) {
+        window.ytPlayer.setPlaybackRate(currentRate);
+      }
       if (resumePaused){ resumePaused = false; window.ytPlayer.pauseVideo(); }
     } else if (e.data === YT.PlayerState.PAUSED){
       btn.textContent = '▶';
@@ -590,6 +598,7 @@
   function closeQualityMenu(){
     menuOpen = false;
     document.getElementById('ccQualityMenu').classList.remove('open');
+    document.getElementById('ccSpeedMenu').classList.remove('open');
   }
 
   function buildQualityMenu(){
@@ -632,9 +641,59 @@
 
   document.getElementById('ccQuality').addEventListener('click', (e) => {
     e.stopPropagation();
+    document.getElementById('ccSpeedMenu').classList.remove('open');
     buildQualityMenu();
     menuOpen = !menuOpen;
     document.getElementById('ccQualityMenu').classList.toggle('open', menuOpen);
+    showControls(true);
+  });
+
+  /* ===== Playback speed (min 0.5x, max 5x) =====
+     The list comes from YouTube (getAvailablePlaybackRates) and is then
+     limited to SPEED_MIN..SPEED_MAX. Note: YouTube's embedded player itself
+     only supports up to 2x, so that is the highest option that will show. */
+  const SPEED_MIN = 0.5, SPEED_MAX = 5;
+  let currentRate = 1;
+
+  function getRates(){
+    let rates = (window.ytPlayer && window.ytPlayer.getAvailablePlaybackRates)
+      ? window.ytPlayer.getAvailablePlaybackRates() : [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+    rates = (rates || []).filter(r => r >= SPEED_MIN && r <= SPEED_MAX);
+    return rates.length ? rates : [1];
+  }
+
+  function rateLabel(r){ return r === 1 ? 'Normal' : r + 'x'; }
+
+  function buildSpeedMenu(){
+    const menu = document.getElementById('ccSpeedMenu');
+    menu.innerHTML = '';
+    getRates().forEach(r => {
+      const b = document.createElement('button');
+      b.textContent = rateLabel(r);
+      if (r === currentRate) b.classList.add('active');
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setSpeed(r);
+        closeQualityMenu();
+      });
+      menu.appendChild(b);
+    });
+  }
+
+  function setSpeed(r){
+    currentRate = r;
+    if (window.ytPlayer && window.ytPlayer.setPlaybackRate) window.ytPlayer.setPlaybackRate(r);
+    document.getElementById('ccSpeed').textContent = r + 'x';
+  }
+
+  document.getElementById('ccSpeed').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('ccQualityMenu').classList.remove('open');
+    const menu = document.getElementById('ccSpeedMenu');
+    buildSpeedMenu();
+    const open = !menu.classList.contains('open');
+    menu.classList.toggle('open', open);
+    menuOpen = open;
     showControls(true);
   });
   document.getElementById('ytShield').addEventListener('click', closeQualityMenu);
