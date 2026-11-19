@@ -11,11 +11,11 @@ window.CURRENT_LESSON = {
   unit: "Lesson 1,2 Past Paper Tute Discussion (Pages 1-7)",
   episodes: [
     {
-      ep: "01",
-      title: "Paper Discussion 01 (Pages 1-7)",
-      unit: "Lesson 1,2 Past Paper Tute Discussion",
+      ep: "PAGE 01-17",
+      title: "Paper Discussion 01",
+      unit: "Lesson 01 Past Paper Tute Discussion",
       duration: "00:00",          // video eke welawa danna (udaharanayata "45:30")
-      tags: "paper discussion past paper tute lesson 1 2",
+      tags: "paper discussion past paper tute lesson 01",
       thumb: "thumb1.png"         // file eka All Lessons/Paper Discussion/ folder eke thiyenna ona
     }
     // aluth video ekak ona nam, uda block eka copy karala ep: "02", "03" ... widihata add karanna
